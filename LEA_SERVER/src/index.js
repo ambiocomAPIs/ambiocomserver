@@ -3,6 +3,8 @@ import morgan from 'morgan'
 import cors from 'cors';
 import dotenv from 'dotenv';
 
+import TanquesJornaleros from './models/TanquesJornalerosModels.js';
+
 import db from './db/db.js';
 import pdfRoutes from './routes/pdfRoutes.js';
 import dataRoutes from './routes/dataRoutes.js';
@@ -11,6 +13,7 @@ import DataColors from './routes/dataColorsRoutes.js';
 import DownloadManual from './routes/manualRoutes.js';
 import movimientoRoutes from './routes/movimiento.routes.js';
 import CierreMes from './routes/CierreMesRoutes.js';
+import TanquesJornalerosSeguimiento from './routes/TanquesJornalerosRoutes.js';
 
 import configuraciones from './config/config.js'
 const app = express();
@@ -39,6 +42,7 @@ app.use('/api/tableColors', DataColors);
 app.use('/api/download', DownloadManual);
 app.use('/api/registro', movimientoRoutes);
 app.use('/api/cierreMes', CierreMes);
+app.use('/api/seguimientotanquesjornaleros', TanquesJornalerosSeguimiento);
 
 // ***************************************************************
 

@@ -21,6 +21,7 @@ const dataSchema = new mongoose.Schema({
   certificadoAnalisis: { type: Boolean },
   responsable: { type: String },  // Cambié a String si es un nombre o identificador
   observaciones: { type: String, default: "Ninguna" },
+  InventarioCritico: { type: Number, default: 0 }, 
   SAP: { type: Number }, 
   ConsumoAcumuladoAnual: { type: Number }, 
   GastoAcumulado: { type: Number }, 
