@@ -14,6 +14,7 @@ import DownloadManual from './routes/manualRoutes.js';
 import movimientoRoutes from './routes/movimiento.routes.js';
 import CierreMes from './routes/CierreMesRoutes.js';
 import TanquesJornalerosSeguimiento from './routes/TanquesJornalerosRoutes.js';
+import ReportarOperacionesDeTanques from './routes/operacionesDeTanques.Routes.js';
 
 import configuraciones from './config/config.js'
 const app = express();
@@ -23,12 +24,12 @@ dotenv.config();
 //static files
 app.use(express.static('public'))
 //middleware
-//app.use(cors()); //comunica la api con el servidor y ciertos dominios
+app.use(cors()); //comunica la api con el servidor y ciertos dominios
 app.use(morgan('dev'))
 app.use(express.json()); //* middleware- analiza solicitudes entrantes con cargas JSON y se basa en body-parser
 
 const corsOptions = {
-    origin: ['http://127.0.0.1:5173', 'https://ambiocomsassgc.netlify.app'],
+    origin: ['http://127.0.0.1:5173', 'https://leaakcsgmrc.netlify.app'],
     optionsSuccessStatus: 200 
 };
 
@@ -43,6 +44,7 @@ app.use('/api/download', DownloadManual);
 app.use('/api/registro', movimientoRoutes);
 app.use('/api/cierreMes', CierreMes);
 app.use('/api/seguimientotanquesjornaleros', TanquesJornalerosSeguimiento);
+app.use('/api/reportar', ReportarOperacionesDeTanques);
 
 // ***************************************************************
 
