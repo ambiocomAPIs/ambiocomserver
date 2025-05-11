@@ -29,7 +29,7 @@ app.use(morgan('dev'))
 app.use(express.json()); //* middleware- analiza solicitudes entrantes con cargas JSON y se basa en body-parser
 
 const corsOptions = {
-    origin: ['http://127.0.0.1:5173', 'https://leaakcsgmrc.netlify.app'],
+    origin: ['http://127.0.0.1:5173', 'https://ambiocomserver.onrender.com'],
     optionsSuccessStatus: 200 
 };
 
