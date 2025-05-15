@@ -11,16 +11,63 @@ export const obtenerNiveles = async (req, res) => {
   }
 };
 
-// POST - Crear nuevo registro
+
 export const crearNivel = async (req, res) => {
+  const datos = req.body;
+
+  if (!Array.isArray(datos) || datos.length === 0) {
+    return res.status(400).json({ message: 'Se debe enviar un array de datos.' });
+  }
+
   try {
-    const nuevoNivel = new NivelDiarioJornalerosLogistica(req.body);
-    const resultado = await nuevoNivel.save();
-    res.status(201).json(resultado);
+    const resultados = await Promise.all(
+      datos.map(async (dato) => {
+        const { NombreTanque, NivelTanque, Responsable, Observaciones, FechaRegistro } = dato;
+
+        if (!NombreTanque) {
+          throw new Error('El campo NombreTanque es obligatorio.');
+        }
+        if (NivelTanque === undefined || NivelTanque === null) {
+          throw new Error('El campo NivelTanque es obligatorio.');
+        }
+        if (!FechaRegistro) {
+          throw new Error('El campo FechaRegistro es obligatorio.');
+        }
+
+        const datePattern = /^\d{4}-\d{2}-\d{2}$/;
+        if (!datePattern.test(FechaRegistro)) {
+          throw new Error('La fecha debe estar en el formato YYYY-MM-DD.');
+        }
+
+        // Verificar si ya existe un registro con la misma fecha
+        const existeRegistro = await NivelDiarioJornalerosLogistica.findOne({ FechaRegistro });
+        if (existeRegistro) {
+          throw new Error(`Ya existe un registro para la fecha ${FechaRegistro}.`);
+        }
+
+        const nuevoNivel = new NivelDiarioJornalerosLogistica({
+          NombreTanque,
+          NivelTanque,
+          Responsable: Responsable || '',
+          Observaciones: Observaciones || '',
+          FechaRegistro,
+        });
+
+        return await nuevoNivel.save();
+      })
+    );
+
+    res.status(201).json({
+      message: 'Registros creados correctamente.',
+      data: resultados,
+    });
   } catch (error) {
-    res.status(400).json({ message: 'Error al guardar el registro', error });
+    console.error(error);
+    res.status(500).json({ message: 'Error al guardar los registros', error: error.message });
   }
 };
+
+//carga masiva excel
 
 export const cargarExcelNivelesTanquesJornaleros = async (req, res) => {
   const file = req.files?.excelFile;
