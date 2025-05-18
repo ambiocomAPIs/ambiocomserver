@@ -5,6 +5,7 @@ import dotenv from 'dotenv';
 
 import TanquesJornaleros from './models/TanquesJornalerosModels.js';
 import NivelDiarioJornalerosLogisticaModel from './models/nivelesTanquesJornalerosModels.js';
+import Movimiento from '../src/models/movimiento.model.js'
 
 
 import db from './db/db.js';
@@ -51,6 +52,23 @@ app.use('/api/reportar', ReportarOperacionesDeTanques);
 app.use('/api/tanquesjornaleros', NivelDiarioJornalerosLogistica);
 
 // ***************************************************************
+// Endpoint para agregar cantidadIngreso
+app.put('/agregar-cantidad-ingreso', async (req, res) => {
+  try {
+    const result = await Movimiento.updateMany(
+      { cantidadIngreso: { $exists: false } }, // Solo si no existe
+      { $set: { cantidadIngreso: "1" } } // Agregar como string
+    );
+
+    res.status(200).json({
+      message: 'Campo cantidadIngreso agregado exitosamente',
+      modifiedCount: result.modifiedCount
+    });
+  } catch (error) {
+    console.error('Error actualizando documentos:', error);
+    res.status(500).json({ message: 'Error actualizando los documentos' });
+  }
+});
 
 // Endpoint temporal para agregar la columna FechaRegistro
 app.post('/agregar-fecha-registro', async (req, res) => {

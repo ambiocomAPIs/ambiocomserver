@@ -1,57 +1,59 @@
 import ProductoDB from '../models/dataModels.js';  // Asegúrate de importar el modelo de Producto
 import Movimiento from '../models/movimiento.model.js';  // El modelo de Movimiento está bien importado
 
+
 export const obtenerMovimientos = async (req, res) => {
-    try {
-      // Desestructuramos los parámetros de búsqueda del query (pueden ser opcionales)
-      const {
-        tipoOperacion, // 'Consumo de Material' o 'Ingreso Material'
-        producto,     // Nombre del producto
-        fechaInicio,  // Fecha de inicio (puede ser en formato ISO string)
-        fechaFin      // Fecha de fin (puede ser en formato ISO string)
-      } = req.query;
-  
-      // Construir un objeto de filtro vacío para usar en la consulta
-      let filtro = {};
-  
-      // Si se pasa tipoOperacion, filtramos por él
-      if (tipoOperacion) {
-        filtro.tipoOperacion = tipoOperacion;
-      }
-  
-      // Si se pasa producto, buscamos el producto por nombre
-      if (producto) {
-        const productoEncontrado = await ProductoDB.findOne({ nombre: producto });
-        if (!productoEncontrado) {
-          return res.status(400).json({ message: 'Producto no encontrado' });
-        }
-        filtro.producto = producto;
-      }
-  
-      // Si se pasan fechas, filtramos por ellas (formato de fecha ISO)
-      if (fechaInicio && fechaFin) {
-        filtro.createdAt = {
-          $gte: new Date(fechaInicio),  // Mayor o igual que la fecha de inicio
-          $lte: new Date(fechaFin)      // Menor o igual que la fecha de fin
-        };
-      }
-  
-      // Consultar los movimientos de acuerdo a los filtros definidos
-      const movimientos = await Movimiento.find(filtro).sort({ createdAt: -1 });  // Ordenamos por fecha descendente
-  
-      // Si no se encontraron movimientos
-      if (movimientos.length === 0) {
-        return res.status(404).json({ message: 'No se encontraron movimientos que coincidan con los criterios.' });
-      }
-  
-      // Responder con los movimientos encontrados
-      res.status(200).json(movimientos);
-    } catch (error) {
-      console.error('Error al obtener los movimientos:', error);
-      res.status(500).json({ message: 'Error al obtener los movimientos', error });
+  try {
+    // Desestructuramos los parámetros de búsqueda del query (pueden ser opcionales)
+    const {
+      tipoOperacion, // 'Consumo de Material' o 'Ingreso Material'
+      producto,     // Nombre del producto
+      fechaInicio,  // Fecha de inicio (puede ser en formato ISO string)
+      fechaFin,
+      fechaMovimiento      // Fecha de fin (puede ser en formato ISO string)
+    } = req.query;
+
+    // Construir un objeto de filtro vacío para usar en la consulta
+    let filtro = {};
+
+    // Si se pasa tipoOperacion, filtramos por él
+    if (tipoOperacion) {
+      filtro.tipoOperacion = tipoOperacion;
     }
-  };
-  
+
+    // Si se pasa producto, buscamos el producto por nombre
+    if (producto) {
+      const productoEncontrado = await ProductoDB.findOne({ nombre: producto });
+      if (!productoEncontrado) {
+        return res.status(400).json({ message: 'Producto no encontrado' });
+      }
+      filtro.producto = producto;
+    }
+
+    // Si se pasan fechas, filtramos por ellas (formato de fecha ISO)
+    if (fechaInicio && fechaFin) {
+      filtro.createdAt = {
+        $gte: new Date(fechaInicio),  // Mayor o igual que la fecha de inicio
+        $lte: new Date(fechaFin)      // Menor o igual que la fecha de fin
+      };
+    }
+
+    // Consultar los movimientos de acuerdo a los filtros definidos
+    const movimientos = await Movimiento.find(filtro).sort({ createdAt: -1 });  // Ordenamos por fecha descendente
+
+    // Si no se encontraron movimientos
+    if (movimientos.length === 0) {
+      return res.status(404).json({ message: 'No se encontraron movimientos que coincidan con los criterios.' });
+    }
+
+    // Responder con los movimientos encontrados
+    res.status(200).json(movimientos);
+  } catch (error) {
+    console.error('Error al obtener los movimientos:', error);
+    res.status(500).json({ message: 'Error al obtener los movimientos', error });
+  }
+};
+
 export const crearMovimiento = async (req, res) => {
   try {
     const {
@@ -66,7 +68,8 @@ export const crearMovimiento = async (req, res) => {
       Area,
       ConsumoAReportar,
       ObservacionesAdicionales,
-      SAP
+      SAP,
+      fechaMovimiento
     } = req.body;
 
     // Agregar un log para verificar los datos recibidos
@@ -75,6 +78,16 @@ export const crearMovimiento = async (req, res) => {
     // Validación de parámetros
     if (!Producto || !Lote) {
       return res.status(400).json({ message: 'Producto o Lote no pueden estar vacíos.' });
+    }
+
+    // Validación de fecha
+    if (!fechaMovimiento) {
+      return res.status(400).json({ message: 'No se ha relacionado fecha para el movimiento' });
+    }
+
+    const fechaValida = new Date(fechaMovimiento);
+    if (isNaN(fechaValida.getTime())) {
+      return res.status(400).json({ message: 'La fecha proporcionada no es válida.' });
     }
 
     // Validar que el Tipo de Operación sea válido
@@ -116,15 +129,16 @@ export const crearMovimiento = async (req, res) => {
       area: Area,
       consumoReportado: consumoARegistrar,
       ObservacionesAdicionales: ObservacionesAdicionales,
-      SAP:SAP
+      SAP: SAP,
+      fechaMovimiento: new Date(fechaMovimiento).toISOString().split('T')[0]  // ← Corregido a formato "YYYY-MM-DD"
     });
 
     // Guardar el movimiento en la base de datos
     const guardado = await nuevoMovimiento.save();
-    
+
     // Responder con el movimiento guardado
     res.status(201).json(guardado);
-    
+
   } catch (error) {
     console.error('Error al registrar movimiento:', error);
     res.status(500).json({ message: 'Error al registrar el movimiento', error });

@@ -12,9 +12,10 @@ const movimientoSchema = new mongoose.Schema({
   area: { type: String, required: true },
   consumoReportado: { type: Number, required: true },
   CostoMovimiento: { type: Number },
-  fechaMovimiento: { type: Date, default: Date.now },
+  fechaMovimiento: { type: String, required: true },
   ObservacionesAdicionales: { type: String, default :"Sin observaciones" },
-  SAP: { type: Number }
+  SAP: { type: Number },
+  cantidadIngreso: { type: String }
 }, { timestamps: true });
 
 // Asegurarse de que el CostoMovimiento siempre sea positivo (valor absoluto)
