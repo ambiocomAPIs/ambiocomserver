@@ -69,7 +69,8 @@ export const crearMovimiento = async (req, res) => {
       ConsumoAReportar,
       ObservacionesAdicionales,
       SAP,
-      fechaMovimiento
+      fechaMovimiento,
+      cantidadIngreso
     } = req.body;
 
     // Agregar un log para verificar los datos recibidos
@@ -130,7 +131,8 @@ export const crearMovimiento = async (req, res) => {
       consumoReportado: consumoARegistrar,
       ObservacionesAdicionales: ObservacionesAdicionales,
       SAP: SAP,
-      fechaMovimiento: new Date(fechaMovimiento).toISOString().split('T')[0]  // ← Corregido a formato "YYYY-MM-DD"
+      fechaMovimiento: new Date(fechaMovimiento).toISOString().split('T')[0],  // ← Corregido a formato "YYYY-MM-DD"
+      cantidadIngreso: cantidadIngreso
     });
 
     // Guardar el movimiento en la base de datos
