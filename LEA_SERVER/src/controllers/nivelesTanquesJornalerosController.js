@@ -11,7 +11,6 @@ export const obtenerNiveles = async (req, res) => {
   }
 };
 
-
 export const crearNivel = async (req, res) => {
   const datos = req.body;
 
@@ -19,54 +18,59 @@ export const crearNivel = async (req, res) => {
     return res.status(400).json({ message: 'Se debe enviar un array de datos.' });
   }
 
-  try {
-    const resultados = await Promise.all(
-      datos.map(async (dato) => {
-        const { NombreTanque, NivelTanque, Responsable, Observaciones, FechaRegistro } = dato;
+  const resultados = [];
+  const errores = [];
 
-        if (!NombreTanque) {
-          throw new Error('El campo NombreTanque es obligatorio.');
-        }
-        if (NivelTanque === undefined || NivelTanque === null) {
-          throw new Error('El campo NivelTanque es obligatorio.');
-        }
-        if (!FechaRegistro) {
-          throw new Error('El campo FechaRegistro es obligatorio.');
-        }
+  for (const dato of datos) {
+    try {
+      console.log("datos que llegan del frontend:", dato.NombreTanque);
 
-        const datePattern = /^\d{4}-\d{2}-\d{2}$/;
-        if (!datePattern.test(FechaRegistro)) {
-          throw new Error('La fecha debe estar en el formato YYYY-MM-DD.');
-        }
+      const { NombreTanque, NivelTanque, Responsable, Observaciones, FechaRegistro } = dato;
 
-        // Verificar si ya existe un registro con la misma fecha
-        const existeRegistro = await NivelDiarioJornalerosLogistica.findOne({ FechaRegistro });
-        if (existeRegistro) {
-          throw new Error(`Ya existe un registro para la fecha ${FechaRegistro}.`);
-        }
+      // Validaciones básicas
+      if (!NombreTanque) throw new Error('El campo NombreTanque es obligatorio.');
+      if (NivelTanque === undefined || NivelTanque === null) throw new Error('El campo NivelTanque es obligatorio.');
+      if (!FechaRegistro) throw new Error('El campo FechaRegistro es obligatorio.');
+      // Validar formato de la fecha
+      const datePattern = /^\d{4}-\d{2}-\d{2}$/;
+      if (!datePattern.test(FechaRegistro)) {
+        throw new Error('La fecha debe estar en el formato YYYY-MM-DD.');
+      }
 
-        const nuevoNivel = new NivelDiarioJornalerosLogistica({
-          NombreTanque,
-          NivelTanque,
-          Responsable: Responsable || '',
-          Observaciones: Observaciones || '',
-          FechaRegistro,
-        });
+      // Verificar duplicados por tanque y fecha
+      const existeRegistro = await NivelDiarioJornalerosLogistica.findOne({ NombreTanque, FechaRegistro });
+      if (existeRegistro) {
+        throw new Error(`Ya existe un registro para el tanque ${NombreTanque} en la fecha ${FechaRegistro}.`);
+      }
 
-        return await nuevoNivel.save();
-      })
-    );
+      // Guardar nuevo registro
+      const nuevoNivel = new NivelDiarioJornalerosLogistica({
+        NombreTanque,
+        NivelTanque,
+        Responsable: Responsable || '',
+        Observaciones: Observaciones || '',
+        FechaRegistro,
+      });
 
-    res.status(201).json({
-      message: 'Registros creados correctamente.',
-      data: resultados,
-    });
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: 'Error al guardar los registros', error: error.message });
+      const resultado = await nuevoNivel.save();
+      resultados.push(resultado);
+
+    } catch (error) {
+      console.error(`Error al procesar tanque ${dato.NombreTanque}:`, error.message);
+      errores.push({ dato, error: error.message });
+    }
   }
-};
 
+  res.status(207).json({
+    message: 'Proceso de carga finalizado.',
+    exitosos: resultados.length,
+    errores,
+    data: {
+      guardados: resultados,
+      fallidos: errores,
+    },
+  });
+};
 //carga masiva excel
 
 export const cargarExcelNivelesTanquesJornaleros = async (req, res) => {
@@ -137,5 +141,43 @@ export const cargarExcelNivelesTanquesJornaleros = async (req, res) => {
   } catch (error) {
     console.error('❌ Error al procesar el archivo Excel:', error);
     res.status(500).json({ message: 'Error al procesar el archivo Excel', error });
+  }
+};
+
+// DELETE - Eliminar registros por FechaRegistro
+export const eliminarPorFechaRegistro = async (req, res) => {
+  const { FechaRegistro } = req.body; // O puedes usar req.query.FechaRegistro si prefieres query params
+
+  console.log("fecharegistro que llega:", FechaRegistro);
+  
+  if (!FechaRegistro) {
+    return res.status(400).json({ message: 'Debe proporcionar el campo FechaRegistro.' });
+  }
+
+  try {
+    // Validar formato de la fecha
+    const datePattern = /^\d{4}-\d{2}-\d{2}$/;
+    if (!datePattern.test(FechaRegistro)) {
+      return res.status(400).json({ message: 'La fecha debe estar en el formato YYYY-MM-DD.' });
+    }
+    // Buscar documentos con esa fecha
+    const registros = await NivelDiarioJornalerosLogistica.find({ FechaRegistro });
+
+    if (registros.length === 0) {
+      return res.status(404).json({ message: `No se encontraron registros con la fecha ${FechaRegistro}.` });
+    }
+    // Obtener los IDs de los registros
+    const ids = registros.map(reg => reg._id);
+    // Eliminar por ID
+    await NivelDiarioJornalerosLogistica.deleteMany({ _id: { $in: ids } });
+    res.status(200).json({
+      message: `Registros eliminados correctamente para la fecha ${FechaRegistro}.`,
+      eliminados: registros.length,
+      ids,
+    });
+
+  } catch (error) {
+    console.error('Error al eliminar registros por fecha:', error);
+    res.status(500).json({ message: 'Error al eliminar registros por fecha.', error });
   }
 };
