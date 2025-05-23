@@ -19,6 +19,8 @@ import CierreMes from './routes/CierreMesRoutes.js';
 import TanquesJornalerosSeguimiento from './routes/TanquesJornalerosRoutes.js';
 import ReportarOperacionesDeTanques from './routes/operacionesDeTanques.Routes.js';
 import NivelDiarioJornalerosLogistica from './routes/nivelesTanquesJornaleros.js';
+import BitacoraSupervisores from './routes/BitacoraSupervisoresDiariaRoutes.js';
+import notasBitacoraSupervisoresRoute from './routes/notasBitacoraSupervisoresRoutes.js'
 
 import configuraciones from './config/config.js'
 const app = express();
@@ -50,6 +52,8 @@ app.use('/api/cierreMes', CierreMes);
 app.use('/api/seguimientotanquesjornaleros', TanquesJornalerosSeguimiento);
 app.use('/api/reportar', ReportarOperacionesDeTanques);
 app.use('/api/tanquesjornaleros', NivelDiarioJornalerosLogistica);
+app.use('/api/bitacora', BitacoraSupervisores)
+app.use('/api/notasbitacora', notasBitacoraSupervisoresRoute)
 
 // ***************************************************************
 // Endpoint para agregar cantidadIngreso
