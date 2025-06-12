@@ -2,14 +2,14 @@ import express from 'express';
 import morgan from 'morgan';
 import cors from 'cors';
 import dotenv from 'dotenv';
-// import multer from 'multer';
-// import path from 'path';
-// import fs from 'fs';
-// import { fileURLToPath } from 'url';
+import multer from 'multer';
+import path from 'path';
+import fs from 'fs';
+import { fileURLToPath } from 'url';
 
-// // Para obtener __dirname en ES modules
-// const __filename = fileURLToPath(import.meta.url);
-// const __dirname = path.dirname(__filename);
+// Para obtener __dirname en ES modules
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 import db from './db/db.js';
 import pdfRoutes from './routes/pdfRoutes.js';
@@ -24,6 +24,7 @@ import ReportarOperacionesDeTanques from './routes/operacionesDeTanques.Routes.j
 import NivelDiarioJornalerosLogistica from './routes/nivelesTanquesJornaleros.js';
 import BitacoraSupervisores from './routes/BitacoraSupervisoresDiariaRoutes.js';
 import notasBitacoraSupervisoresRoute from './routes/notasBitacoraSupervisoresRoutes.js';
+import UsuariosAmbiocomExtrasRoutes from './routes/UsuariosAmbiocomExtrasRoutes.js'
 
 import configuraciones from './config/config.js';
 
@@ -32,10 +33,10 @@ dotenv.config();
 const app = express();
 const PORT = configuraciones.PORT || 4040;
 
-// const imageDir = path.join(__dirname, '../public/imagenes');
+const imageDir = path.join(__dirname, '../public/imagenes');
 
-// // Crear carpeta si no existe
-// fs.mkdirSync(imageDir, { recursive: true });
+// Crear carpeta si no existe
+fs.mkdirSync(imageDir, { recursive: true });
 
 // Middleware global CORS
 const corsOptionsGlobal = {
@@ -70,20 +71,20 @@ const corsOptionsForImages = {
   optionsSuccessStatus: 200
 };
 
-// // Servir imágenes estáticas con CORS correcto
-// app.use('/imagenes', cors(corsOptionsForImages), express.static(imageDir));
+// Servir imágenes estáticas con CORS correcto
+app.use('/imagenes', cors(corsOptionsForImages), express.static(imageDir));
 
-// // Configuración multer para subir imágenes
-// const storage = multer.diskStorage({
-//   destination: (req, file, cb) => {
-//     cb(null, imageDir);
-//   },
-//   filename: (req, file, cb) => {
-//     const id = req.params.id;
-//     cb(null, `${id}.jpg`);
-//   }
-// });
-// const upload = multer({ storage });
+// Configuración multer para subir imágenes
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, imageDir);
+  },
+  filename: (req, file, cb) => {
+    const id = req.params.id;
+    cb(null, `${id}.jpg`);
+  }
+});
+const upload = multer({ storage });
 
 // Rutas API
 app.use('/api/pdfs', pdfRoutes);
@@ -98,15 +99,16 @@ app.use('/api/reportar', ReportarOperacionesDeTanques);
 app.use('/api/tanquesjornaleros', NivelDiarioJornalerosLogistica);
 app.use('/api/bitacora', BitacoraSupervisores);
 app.use('/api/notasbitacora', notasBitacoraSupervisoresRoute);
+app.use('/api/usuarios', UsuariosAmbiocomExtrasRoutes);
 
-// // Ruta para subir imagen
-// app.post('/upload/:id', upload.single('image'), (req, res) => {
-//   console.log('Archivo recibido:', req.file);
-//   if (!req.file) {
-//     return res.status(400).json({ error: 'No se subió ningún archivo' });
-//   }
-//   res.json({ success: true });
-// });
+// Ruta para subir imagen
+app.post('/upload/:id', upload.single('image'), (req, res) => {
+  console.log('Archivo recibido:', req.file);
+  if (!req.file) {
+    return res.status(400).json({ error: 'No se subió ningún archivo' });
+  }
+  res.json({ success: true });
+});
 
 // Iniciar servidor
 app.listen(PORT, () => {
