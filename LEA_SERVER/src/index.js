@@ -45,7 +45,7 @@ const corsOptionsGlobal = {
     'http://localhost:5173',
     'https://ambiocomserver.onrender.com',
     'https://ambiocomsassgc.netlify.app'
-  ],
+  ], 
   optionsSuccessStatus: 200
 };
 
