@@ -35,12 +35,6 @@ const app = express();
 const PORT = configuraciones.PORT || 4040;
 
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
-<<<<<<< HEAD
-=======
-console.log("GEMINI_API_KEY:",GEMINI_API_KEY);
->>>>>>> 8b2e0c1c1ba79f4b9b00a62b2f63830d183f18da
-
-
 
 const imageDir = path.join(__dirname, '../public/imagenes');
 
@@ -112,7 +106,6 @@ app.use('/api/usuarios', UsuariosAmbiocomExtrasRoutes);
 
 app.post('/api/gemini/message', async (req, res) => {
   const { message } = req.body;
-<<<<<<< HEAD
 
   try {
     const response = await fetch(
@@ -154,49 +147,7 @@ app.post('/api/gemini/message', async (req, res) => {
     res.status(500).json({ error: 'Error al contactar Gemini' });
   }
 });
-=======
->>>>>>> 8b2e0c1c1ba79f4b9b00a62b2f63830d183f18da
 
-  try {
-    const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`,
-      {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          contents: [
-            {
-              parts: [{ text: message }],
-            },
-          ],
-        }),
-      }
-    );
-
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error('❌ Error en respuesta de Gemini:', response.status, errorText);
-      return res.status(500).json({ error: 'Gemini API respondió con error' });
-    }
-
-    const data = await response.json();
-    console.log('🧠 Respuesta completa de Gemini:', JSON.stringify(data, null, 2));
-
-    let reply = '⚠️ Sin respuesta de Gemini';
-
-    if (data?.candidates?.length > 0) {
-      const parts = data.candidates[0].content?.parts;
-      if (parts?.length > 0 && parts[0].text) {
-        reply = parts[0].text;
-      }
-    }
-
-    res.json({ reply });
-  } catch (error) {
-    console.error('❌ Error en Gemini API:', error.message);
-    res.status(500).json({ error: 'Error al contactar Gemini' });
-  }
-});
 // Iniciar servidor
 app.listen(PORT, () => {
   console.log(`conectado en el puerto: ${PORT}`);
