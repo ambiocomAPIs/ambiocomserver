@@ -6,6 +6,7 @@ import multer from 'multer';
 import path from 'path';
 import fs from 'fs';
 import { fileURLToPath } from 'url';
+import { OpenAI } from 'openai'
 
 // Para obtener __dirname en ES modules
 const __filename = fileURLToPath(import.meta.url);
@@ -33,6 +34,10 @@ dotenv.config();
 const app = express();
 const PORT = configuraciones.PORT || 4040;
 
+const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
+
+
+
 const imageDir = path.join(__dirname, '../public/imagenes');
 
 // Crear carpeta si no existe
@@ -43,9 +48,9 @@ const corsOptionsGlobal = {
   origin: [
     'http://127.0.0.1:5173',
     'http://localhost:5173',
-    'https://ambiocomserver.onrender.com',
+    'http://localhost:4041',
     'https://ambiocomsassgc.netlify.app'
-  ], 
+  ],
   optionsSuccessStatus: 200
 };
 
@@ -101,13 +106,48 @@ app.use('/api/bitacora', BitacoraSupervisores);
 app.use('/api/notasbitacora', notasBitacoraSupervisoresRoute);
 app.use('/api/usuarios', UsuariosAmbiocomExtrasRoutes);
 
-// Ruta para subir imagen
-app.post('/upload/:id', upload.single('image'), (req, res) => {
-  console.log('Archivo recibido:', req.file);
-  if (!req.file) {
-    return res.status(400).json({ error: 'No se subió ningún archivo' });
+app.post('/api/gemini/message', async (req, res) => {
+  const { message } = req.body;
+
+  try {
+    const response = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          contents: [
+            {
+              parts: [{ text: message }],
+            },
+          ],
+        }),
+      }
+    );
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error('❌ Error en respuesta de Gemini:', response.status, errorText);
+      return res.status(500).json({ error: 'Gemini API respondió con error' });
+    }
+
+    const data = await response.json();
+    console.log('🧠 Respuesta completa de Gemini:', JSON.stringify(data, null, 2));
+
+    let reply = '⚠️ Sin respuesta de Gemini';
+
+    if (data?.candidates?.length > 0) {
+      const parts = data.candidates[0].content?.parts;
+      if (parts?.length > 0 && parts[0].text) {
+        reply = parts[0].text;
+      }
+    }
+
+    res.json({ reply });
+  } catch (error) {
+    console.error('❌ Error en Gemini API:', error.message);
+    res.status(500).json({ error: 'Error al contactar Gemini' });
   }
-  res.json({ success: true });
 });
 
 // Iniciar servidor
