@@ -26,6 +26,7 @@ import NivelDiarioJornalerosLogistica from './routes/nivelesTanquesJornaleros.js
 import BitacoraSupervisores from './routes/BitacoraSupervisoresDiariaRoutes.js';
 import notasBitacoraSupervisoresRoute from './routes/notasBitacoraSupervisoresRoutes.js';
 import UsuariosAmbiocomExtrasRoutes from './routes/UsuariosAmbiocomExtrasRoutes.js'
+import Tanques from './routes/TanquesRoutes.js'
 
 import configuraciones from './config/config.js';
 
@@ -103,6 +104,7 @@ app.use('/api/tanquesjornaleros', NivelDiarioJornalerosLogistica);
 app.use('/api/bitacora', BitacoraSupervisores);
 app.use('/api/notasbitacora', notasBitacoraSupervisoresRoute);
 app.use('/api/usuarios', UsuariosAmbiocomExtrasRoutes);
+app.use('/api/tanques', Tanques);
 
 app.post('/api/gemini/message', async (req, res) => {
   const { message } = req.body;
