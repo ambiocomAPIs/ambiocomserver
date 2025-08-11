@@ -26,6 +26,8 @@ import NivelDiarioJornalerosLogistica from './routes/nivelesTanquesJornaleros.js
 import BitacoraSupervisores from './routes/BitacoraSupervisoresDiariaRoutes.js';
 import notasBitacoraSupervisoresRoute from './routes/notasBitacoraSupervisoresRoutes.js';
 import UsuariosAmbiocomExtrasRoutes from './routes/UsuariosAmbiocomExtrasRoutes.js'
+import Tanques from './routes/TanquesRoutes.js'
+import EmpleadosAmbiocomModels from './routes/EmpleadosAmbiocomRoutes.js';
 
 import configuraciones from './config/config.js';
 
@@ -35,9 +37,6 @@ const app = express();
 const PORT = configuraciones.PORT || 4040;
 
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
-console.log("GEMINI_API_KEY:",GEMINI_API_KEY);
-
-
 
 const imageDir = path.join(__dirname, '../public/imagenes');
 
@@ -106,6 +105,8 @@ app.use('/api/tanquesjornaleros', NivelDiarioJornalerosLogistica);
 app.use('/api/bitacora', BitacoraSupervisores);
 app.use('/api/notasbitacora', notasBitacoraSupervisoresRoute);
 app.use('/api/usuarios', UsuariosAmbiocomExtrasRoutes);
+app.use('/api/tanques', Tanques);
+app.use('/api/empleadosambiocom', EmpleadosAmbiocomModels);
 
 app.post('/api/gemini/message', async (req, res) => {
   const { message } = req.body;
@@ -150,6 +151,7 @@ app.post('/api/gemini/message', async (req, res) => {
     res.status(500).json({ error: 'Error al contactar Gemini' });
   }
 });
+
 // Iniciar servidor
 app.listen(PORT, () => {
   console.log(`conectado en el puerto: ${PORT}`);
