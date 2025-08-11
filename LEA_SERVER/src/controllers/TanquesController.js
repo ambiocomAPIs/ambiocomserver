@@ -30,6 +30,10 @@ export const createTanque = async (req, res) => {
   }
 };
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> 0fef7ab10fe7dc4905f796df67a3b1c86ac430f5
 // Actualizar un tanque existente
 export const updateTanque = async (req, res) => {
   try {
