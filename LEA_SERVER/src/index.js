@@ -27,9 +27,7 @@ import BitacoraSupervisores from './routes/BitacoraSupervisoresDiariaRoutes.js';
 import notasBitacoraSupervisoresRoute from './routes/notasBitacoraSupervisoresRoutes.js';
 import UsuariosAmbiocomExtrasRoutes from './routes/UsuariosAmbiocomExtrasRoutes.js'
 import Tanques from './routes/TanquesRoutes.js'
-
 import EmpleadosAmbiocomModels from './routes/EmpleadosAmbiocomRoutes.js';
-
 
 import configuraciones from './config/config.js';
 
@@ -108,7 +106,6 @@ app.use('/api/bitacora', BitacoraSupervisores);
 app.use('/api/notasbitacora', notasBitacoraSupervisoresRoute);
 app.use('/api/usuarios', UsuariosAmbiocomExtrasRoutes);
 app.use('/api/tanques', Tanques);
-
 app.use('/api/empleadosambiocom', EmpleadosAmbiocomModels);
 
 app.post('/api/gemini/message', async (req, res) => {
