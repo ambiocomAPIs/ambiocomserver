@@ -12,6 +12,8 @@ export const getTanques = async (req, res) => {
 
 // Crear un nuevo tanque
 export const createTanque = async (req, res) => {
+  console.log("que llega:", req.body);
+  
   try {
     const { NombreTanque } = req.body;
 
@@ -29,7 +31,6 @@ export const createTanque = async (req, res) => {
     res.status(500).json({ error: "Error al crear tanque" });
   }
 };
-
 
 // Actualizar un tanque existente
 export const updateTanque = async (req, res) => {
