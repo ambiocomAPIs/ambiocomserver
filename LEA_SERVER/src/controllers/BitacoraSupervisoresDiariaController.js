@@ -37,35 +37,76 @@ export const getBitacoraByFechaYTurno = async (req, res) => {
     }
   };
 
+// export const bitacorareplaceall = async (req, res) => {
+//     console.log("📥 Body recibido en backend:", req.body);
+
+//   try {
+
+//     if (!Array.isArray(req.body) || req.body.length === 0) {
+//         return res.status(400).json({ message: "Se requiere un arreglo con al menos un objeto." });
+//       }
+
+//     const [incoming] = req.body; // Esperamos un solo objeto en un array
+//     const { fecha, turno } = incoming;
+
+//     if (!fecha || !turno) {
+//       return res.status(400).json({ message: "Faltan 'fecha' o 'turno' en la solicitud." });
+//     }
+
+//     // Buscar por combinación única: fecha + turno
+//     const existingDoc = await Bitacora.findOne({ fecha, turno });
+// console.log("✅ EXISTING DOC:", existingDoc);
+
+//     let savedDoc;
+
+//     console.log("🆕 DOC GUARDADO:", savedDoc);
+
+
+//     if (existingDoc) {
+//       // Si existe, actualizamos solo los campos necesarios
+//       savedDoc = await Bitacora.findByIdAndUpdate(existingDoc._id, incoming, {
+//         new: true,
+//       });
+//     } else {
+//       // Si no existe, creamos uno nuevo
+//       const newDoc = new Bitacora(incoming);
+//       savedDoc = await newDoc.save();
+//     }
+
+//     res.status(200).json(savedDoc);
+//   } catch (error) {
+//     console.error("❌ Error en replaceAllBitacora:", error);
+//     res.status(500).json({ message: "Error al guardar los datos de bitácora." });
+//   }
+// };
+
+
 export const bitacorareplaceall = async (req, res) => {
   try {
-
     if (!Array.isArray(req.body) || req.body.length === 0) {
-        return res.status(400).json({ message: "Se requiere un arreglo con al menos un objeto." });
-      }
+      return res.status(400).json({ message: "Se requiere un arreglo con al menos un objeto." });
+    }
 
-    const [incoming] = req.body; // Esperamos un solo objeto en un array
+    const [incoming] = req.body;
     const { fecha, turno } = incoming;
 
     if (!fecha || !turno) {
       return res.status(400).json({ message: "Faltan 'fecha' o 'turno' en la solicitud." });
     }
 
-    // Buscar por combinación única: fecha + turno
-    const existingDoc = await Bitacora.findOne({ fecha, turno });
+    console.log("📥 Body recibido en backend:", req.body);
 
-    let savedDoc;
+    const savedDoc = await Bitacora.findOneAndUpdate(
+      { fecha, turno },       // Criterio de búsqueda
+      incoming,               // Datos nuevos
+      {
+        new: true,            // Retornar el documento actualizado
+        upsert: true,         // Si no existe, lo crea
+        setDefaultsOnInsert: true // Aplica defaults si se inserta
+      }
+    );
 
-    if (existingDoc) {
-      // Si existe, actualizamos solo los campos necesarios
-      savedDoc = await Bitacora.findByIdAndUpdate(existingDoc._id, incoming, {
-        new: true,
-      });
-    } else {
-      // Si no existe, creamos uno nuevo
-      const newDoc = new Bitacora(incoming);
-      savedDoc = await newDoc.save();
-    }
+    console.log("✅ Documento guardado o actualizado:", savedDoc);
 
     res.status(200).json(savedDoc);
   } catch (error) {

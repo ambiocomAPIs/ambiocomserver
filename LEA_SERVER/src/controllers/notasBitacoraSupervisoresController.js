@@ -58,3 +58,28 @@ export const toggleComplete = async (req, res) => {
     res.status(500).json({ message: "Error al actualizar nota", error });
   }
 };
+
+// eliminar notas
+export const deleteNoteById = async (req, res) => {
+  const { id } = req.params;
+  const { password } = req.body;
+
+  const PASSWORD_CORRECTA = "admin123"; // Cambia esto por un entorno seguro en producción
+
+  if (password !== PASSWORD_CORRECTA) {
+    return res.status(401).json({ message: "Contraseña incorrecta." });
+  }
+
+  try {
+    const deleted = await NotasBitacoraSupervisores.findByIdAndDelete(id);
+
+    if (!deleted) {
+      return res.status(404).json({ message: "Nota no encontrada." });
+    }
+
+    res.status(200).json({ message: "Nota eliminada correctamente." });
+  } catch (error) {
+    console.error("❌ Error al eliminar nota:", error);
+    res.status(500).json({ message: "Error al eliminar la nota." });
+  }
+};
