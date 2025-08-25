@@ -1,4 +1,9 @@
+import mongoose from 'mongoose';
+import dotenv from "dotenv"
+dotenv.config();
+
 import NotasBitacoraSupervisores from "../models/notasBitacorasSupervisoresModels.js";
+
 
 // GET /notes?module=PENDIENTES
 export const getNotes = async (req, res) => {
@@ -59,18 +64,25 @@ export const toggleComplete = async (req, res) => {
   }
 };
 
-// eliminar notas
+// Controlador para eliminar una nota por su ID
 export const deleteNoteById = async (req, res) => {
-  const { id } = req.params;
-  const { password } = req.body;
+  const { id } = req.params; 
+  const password = req.headers.authorization?.replace('Bearer ', '');
+  // const { password } = req.query; 
+  const PASSWORD_CORRECTA = process.env.ADMIN_PASSWORD;
 
-  const PASSWORD_CORRECTA = "admin123"; // Cambia esto por un entorno seguro en producción
+  // Validar que el id sea un ObjectId válido de Mongo
+  if (!mongoose.Types.ObjectId.isValid(id)) {
+    return res.status(400).json({ message: 'ID inválido' });
+  }
 
+  // Validar la contraseña
   if (password !== PASSWORD_CORRECTA) {
     return res.status(401).json({ message: "Contraseña incorrecta." });
   }
 
   try {
+    // Intentar eliminar la nota
     const deleted = await NotasBitacoraSupervisores.findByIdAndDelete(id);
 
     if (!deleted) {
