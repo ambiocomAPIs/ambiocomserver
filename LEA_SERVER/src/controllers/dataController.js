@@ -75,7 +75,6 @@ export const updateData = async (req, res) => {
 
 // Eliminar un datos
 export const deleteData = async (req, res) => {
-  console.log("id que llega al delete:", req.params.id);
 
   // Validación del ObjectId
   if (!ObjectId.isValid(req.params.id)) {
@@ -87,8 +86,6 @@ export const deleteData = async (req, res) => {
     const data = await Data.findByIdAndDelete(req.params.id);
 
     // Verificar si el documento fue encontrado y eliminado
-    console.log("Documento eliminado:", data);
-
     if (!data) {
       // Si el documento no se encuentra, enviar mensaje de error
       return res.status(404).json({ message: 'Fila no encontrada' });
@@ -106,20 +103,21 @@ export const deleteData = async (req, res) => {
 
 // gasto mensual
 export const reportarOperacion = async (req, res) => {
+  
   try {
     const {
       Producto,
       Lote,
       ConsumoAReportar,
-      TipoOperación,
+      TipoOperacion,
       Costo, // Costo unitario recibido en la solicitud
     } = req.body;
 
     // Validamos que Costo sea un número válido
     const costoUnitario = isNaN(Costo) ? 0 : parseFloat(Costo);
-    const cantidad = parseFloat(ConsumoAReportar);
+    const cantidad = parseFloat(ConsumoAReportar);    
 
-    if (isNaN(cantidad)) {
+    if (isNaN(cantidad)) {      
       return res.status(400).json({ message: 'Cantidad inválida' });
     }
 
@@ -132,22 +130,19 @@ export const reportarOperacion = async (req, res) => {
     if (!data) {
       return res.status(404).json({ message: 'Producto con ese lote no encontrado' });
     }
-
+        
     // Sumar o restar según el tipo de operación
-    if (TipoOperación === 'Consumo de Material') {
+    if (TipoOperacion === 'Consumo de Material' || TipoOperacion === 'Consumo de Insumo') {
       // Restar de inventario
       data.Inventario = (parseFloat(data.Inventario) || 0) - cantidad;
-
       // Sumar al consumo mensual
       data.ConsumoMensual = (parseFloat(data.ConsumoMensual) || 0) + cantidad;
-
       // Sumar el gasto mensual calculado
       data.GastoMensual = (parseFloat(data.GastoMensual) || 0) + gastoMensual;
 
-    } else if (TipoOperación === 'Ingreso Material') {
+    } else if (TipoOperacion === 'Ingreso Material' || TipoOperacion === 'Ingreso Insumo') {
       // Sumar al inventario
       data.Inventario = (parseFloat(data.Inventario) || 0) + cantidad;
-
       // Sumar la cantidad al campo cantidadIngreso
       data.cantidadIngreso = (parseFloat(data.cantidadIngreso) || 0) + cantidad;
 

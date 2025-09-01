@@ -25,7 +25,7 @@ export const crearNivel = async (req, res) => {
     try {
       console.log("datos que llegan del frontend:", dato.NombreTanque);
 
-      const { NombreTanque, NivelTanque, Responsable, Observaciones, FechaRegistro } = dato;
+      const { NombreTanque, NivelTanque, Responsable, Observaciones, FechaRegistro, Factor, Disposicion } = dato;
 
       // Validaciones básicas
       if (!NombreTanque) throw new Error('El campo NombreTanque es obligatorio.');
@@ -50,6 +50,8 @@ export const crearNivel = async (req, res) => {
         Responsable: Responsable || '',
         Observaciones: Observaciones || '',
         FechaRegistro,
+        Factor,
+        Disposicion
       });
 
       const resultado = await nuevoNivel.save();

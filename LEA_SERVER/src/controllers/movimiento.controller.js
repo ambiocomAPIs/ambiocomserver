@@ -54,10 +54,10 @@ export const obtenerMovimientos = async (req, res) => {
   }
 };
 
-export const crearMovimiento = async (req, res) => {
+export const crearMovimiento = async (req, res) => {  
   try {
     const {
-      TipoOperación,
+      TipoOperacion,
       Producto,
       Lote,
       Inventario,
@@ -72,28 +72,25 @@ export const crearMovimiento = async (req, res) => {
       fechaMovimiento,
       cantidadIngreso
     } = req.body;
-
-    // Agregar un log para verificar los datos recibidos
-    console.log('Datos recibidos:', req.body);
-
+ 
+    console.log("que llega;:", req.body);
+    
     // Validación de parámetros
     if (!Producto || !Lote) {
       return res.status(400).json({ message: 'Producto o Lote no pueden estar vacíos.' });
     }
-
     // Validación de fecha
     if (!fechaMovimiento) {
       return res.status(400).json({ message: 'No se ha relacionado fecha para el movimiento' });
     }
-
     const fechaValida = new Date(fechaMovimiento);
     if (isNaN(fechaValida.getTime())) {
       return res.status(400).json({ message: 'La fecha proporcionada no es válida.' });
     }
-
     // Validar que el Tipo de Operación sea válido
-    const tiposOperacionPermitidos = ['Consumo de Material', 'Ingreso Material'];
-    if (!tiposOperacionPermitidos.includes(TipoOperación)) {
+    const tiposOperacionPermitidos = ['Consumo de Material', 'Ingreso Material', 'Ingreso Insumo', 'Consumo de Insumo'];
+    
+    if (!tiposOperacionPermitidos.includes(TipoOperacion)) {
       return res.status(400).json({ message: 'Tipo de operación inválido. Debe ser "Consumo de Material" o "Ingreso Material".' });
     }
 
@@ -111,15 +108,15 @@ export const crearMovimiento = async (req, res) => {
 
     // Calcular el consumo a registrar (positivo o negativo según el tipo de operación)
     let consumoARegistrar;
-    if (TipoOperación === 'Consumo de Material') {
+    if (TipoOperacion === 'Consumo de Material' || TipoOperacion === 'Consumo de Insumo') {
       consumoARegistrar = -Math.abs(consumoAReportar);  // Consumo negativo
-    } else if (TipoOperación === 'Ingreso Material') {
+    } else if (TipoOperacion === 'Ingreso Material' || TipoOperacion === 'Ingreso Insumo') {
       consumoARegistrar = Math.abs(consumoAReportar);  // Ingreso positivo
     }
 
     // Crear un nuevo movimiento
     const nuevoMovimiento = new Movimiento({
-      tipoOperacion: TipoOperación,  // 'Consumo de Material' o 'Ingreso Material'
+      tipoOperacion: TipoOperacion,  // 'Consumo de Material' o 'Ingreso Material'
       producto: Producto,
       lote: Lote,
       inventario: Number(Inventario),
@@ -134,7 +131,7 @@ export const crearMovimiento = async (req, res) => {
       fechaMovimiento: new Date(fechaMovimiento).toISOString().split('T')[0],  // ← Corregido a formato "YYYY-MM-DD"
       cantidadIngreso: cantidadIngreso
     });
-
+    
     // Guardar el movimiento en la base de datos
     const guardado = await nuevoMovimiento.save();
 
@@ -144,5 +141,34 @@ export const crearMovimiento = async (req, res) => {
   } catch (error) {
     console.error('Error al registrar movimiento:', error);
     res.status(500).json({ message: 'Error al registrar el movimiento', error });
+  }
+};
+
+
+// Eliminar un movimiento por ID
+export const eliminarMovimiento = async (req, res) => {
+  try {
+    const { id } = req.params; // ID recibido desde el frontend
+
+    // Verificar que se haya enviado un ID
+    if (!id) {
+      return res.status(400).json({ message: "Debe proporcionar un ID válido." });
+    }
+
+    // Buscar y eliminar el movimiento
+    const movimientoEliminado = await Movimiento.findByIdAndDelete(id);
+
+    // Si no se encontró el movimiento
+    if (!movimientoEliminado) {
+      return res.status(404).json({ message: "Movimiento no encontrado." });
+    }
+
+    res.status(200).json({
+      message: "Movimiento eliminado correctamente.",
+      movimiento: movimientoEliminado
+    });
+  } catch (error) {
+    console.error("Error al eliminar el movimiento:", error);
+    res.status(500).json({ message: "Error al eliminar el movimiento", error });
   }
 };
