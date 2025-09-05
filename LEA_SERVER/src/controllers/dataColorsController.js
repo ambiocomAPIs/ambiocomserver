@@ -87,8 +87,6 @@ export const updateDataColors = async (req, res) => {
 
 // Eliminar un datos
 export const deleteDataColors = async (req, res) => {
-  console.log("id que llega al delete:", req.params.id);
-
   // Validación del ObjectId
   if (!ObjectId.isValid(req.params.id)) {
     return res.status(400).json({ message: 'Id no válido' });
@@ -99,8 +97,6 @@ export const deleteDataColors = async (req, res) => {
     const dataColors = await DataColors.findByIdAndDelete(req.params.id);
 
     // Verificar si el documento fue encontrado y eliminado
-    console.log("Documento eliminado:", dataColors);
-
     if (!dataColors) {
       // Si el documento no se encuentra, enviar mensaje de error
       return res.status(404).json({ message: 'Fila no encontrada' });

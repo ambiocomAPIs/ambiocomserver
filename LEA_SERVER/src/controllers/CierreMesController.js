@@ -38,8 +38,6 @@ export const getAllDatasCierreMes = async (req, res) => {
 
 // Eliminar un datos
 export const deleteData = async (req, res) => {
-  console.log("id que llega al delete:", req.params.id);
-
   // Validación del ObjectId
   if (!ObjectId.isValid(req.params.id)) {
     return res.status(400).json({ message: 'Id no válido' });
@@ -48,9 +46,6 @@ export const deleteData = async (req, res) => {
   try {
     // Intentar eliminar el documento
     const data = await CierreMes.findByIdAndDelete(req.params.id);
-
-    // Verificar si el documento fue encontrado y eliminado
-    console.log("Documento eliminado:", data);
 
     if (!data) {
       // Si el documento no se encuentra, enviar mensaje de error

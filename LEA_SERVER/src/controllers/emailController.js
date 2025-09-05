@@ -4,8 +4,6 @@ import {sendEmailData} from '../utils/mailer.js'
 
 export const sendEmail = async (req, res) => {
     const productos = req.body;
-
-    console.log("productos que llegan al backend:", productos);
     
     try {
       productos.forEach((producto) => {
@@ -25,8 +23,6 @@ export const sendEmail = async (req, res) => {
 
 export const notificarProducto = async (req, res) => {
   const { productoId } = req.params; // Recibir el ID del producto de la URL
-
-  console.log("ejecutando notificar producto, id que llega:", productoId);
   
   try {
     const producto = await Producto.findById(productoId);

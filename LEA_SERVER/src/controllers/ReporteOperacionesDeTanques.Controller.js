@@ -11,8 +11,6 @@ export const GetMovimientoTanque = async (req, res) => {
 };
 
 export const crearMovimientoTanque = async (req, res) => {
-
-  console.log("data que llega:", req.body);
   
   try {
     const {

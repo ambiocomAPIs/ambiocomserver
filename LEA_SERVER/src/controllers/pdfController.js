@@ -1,10 +1,7 @@
 import Pdf from '../models/pdfModel.js';
 
 export const uploadPdf = async (req, res) => {
-    const { rowId } = req.body;
-
-    console.log("rowid recibido:", rowId);
-    
+    const { rowId } = req.body;    
 
     // Verifica que req.file esté definido
     if (!req.file) {
@@ -98,8 +95,6 @@ export const getDownPdfByIndex = async (req, res) => {
         if (!pdf) {
             return res.status(404).json({ message: 'PDF no encontrado' });
         }
-
-        console.log("pdf encontrado:", pdf);
 
         // Asegúrate de que el nombre del archivo se incluya en el encabezado `Content-Disposition`
         res.set('Content-Type', 'application/pdf'); // Establece el tipo de contenido como PDF

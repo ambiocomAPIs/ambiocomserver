@@ -48,6 +48,39 @@ export const createNote = async (req, res) => {
   }
 };
 
+// PATCH /notes/:id
+export const updateNoteById = async (req, res) => {
+  const { id } = req.params;
+  const { text } = req.body;
+
+  // Validar que el id sea un ObjectId válido de Mongo
+  if (!mongoose.Types.ObjectId.isValid(id)) {
+    return res.status(400).json({ message: "ID inválido" });
+  }
+
+  // Validar que se haya enviado texto
+  if (!text || text.trim() === "") {
+    return res.status(400).json({ message: "El texto de la nota no puede estar vacío" });
+  }
+
+  try {
+    const updatedNote = await NotasBitacoraSupervisores.findByIdAndUpdate(
+      id,
+      { text: text.trim() },
+      { new: true } // para devolver la nota actualizada
+    );
+
+    if (!updatedNote) {
+      return res.status(404).json({ message: "Nota no encontrada" });
+    }
+
+    res.status(200).json(updatedNote);
+  } catch (error) {
+    console.error("❌ Error al actualizar nota:", error);
+    res.status(500).json({ message: "Error al actualizar nota", error });
+  }
+};
+
 
 // PATCH /notes/:id/toggle
 export const toggleComplete = async (req, res) => {

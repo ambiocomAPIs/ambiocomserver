@@ -23,7 +23,6 @@ export const crearNivel = async (req, res) => {
 
   for (const dato of datos) {
     try {
-      console.log("datos que llegan del frontend:", dato.NombreTanque);
 
       const { NombreTanque, NivelTanque, Responsable, Observaciones, FechaRegistro, Factor, Disposicion } = dato;
 

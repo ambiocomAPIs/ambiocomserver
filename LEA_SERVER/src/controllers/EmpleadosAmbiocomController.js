@@ -2,7 +2,6 @@ import Empleado from '../models/EmpleadosAmbiocomModels.js';
 
 // Crear empleado
 export const crearEmpleado = async (req, res) => {
-    console.log('Datos recibidos:', req.body);
   try {
     const nuevoEmpleado = new Empleado(req.body);
     await nuevoEmpleado.save();

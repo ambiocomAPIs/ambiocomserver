@@ -12,7 +12,6 @@ export const getTanques = async (req, res) => {
 
 // Crear un nuevo tanque
 export const createTanque = async (req, res) => {
-  console.log("que llega:", req.body);
   
   try {
     const { NombreTanque } = req.body;

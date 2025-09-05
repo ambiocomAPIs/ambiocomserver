@@ -161,33 +161,9 @@ export const reportarOperacion = async (req, res) => {
   }
 };
 
-// Reemplazar toda la data
-// export const replaceAllData = async (req, res) => {
-//   try {
-
-//     console.log("data de tabla:", req.body);
-    
-    
-//     // Elimina todos los PDFs de la base de datos
-//     await Pdf.deleteMany({}); 
-//     // Borrar todos los datos existentes
-//     await Data.deleteMany({});
-
-//     // Insertar la nueva data
-//     const newData = await Data.insertMany(req.body); // req.body contiene la nueva data
-
-//     // Retornar la nueva data insertada
-//     res.status(200).json(newData);
-//   } catch (error) {
-//     console.error(error);
-//     res.status(400).json({ error: error.message });
-//   }
-// };
-
 // no borrar la dara si no reemplazarla
 export const replaceAllData = async (req, res) => {
   try {
-    console.log("data de tabla:", req.body);
 
     const tableData = req.body;
 

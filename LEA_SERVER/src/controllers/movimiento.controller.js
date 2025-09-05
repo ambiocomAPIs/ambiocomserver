@@ -72,9 +72,7 @@ export const crearMovimiento = async (req, res) => {
       fechaMovimiento,
       cantidadIngreso
     } = req.body;
- 
-    console.log("que llega;:", req.body);
-    
+     
     // Validación de parámetros
     if (!Producto || !Lote) {
       return res.status(400).json({ message: 'Producto o Lote no pueden estar vacíos.' });
