@@ -4,6 +4,6 @@ import { crearGraficaInsumoskgoh, obtenerGraficaInsumoskgoh } from "../controlle
 const router = express.Router();
 
 router.post("/guardar", crearGraficaInsumoskgoh);   // Guardar nueva producción
-router.get("/", obtenerGraficaInsumoskgoh); // Listar producciones
+router.get("/listar", obtenerGraficaInsumoskgoh); // Listar producciones
 
 export default router;
