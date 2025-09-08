@@ -28,6 +28,7 @@ import notasBitacoraSupervisoresRoute from './routes/notasBitacoraSupervisoresRo
 import UsuariosAmbiocomExtrasRoutes from './routes/UsuariosAmbiocomExtrasRoutes.js'
 import Tanques from './routes/TanquesRoutes.js'
 import EmpleadosAmbiocomModels from './routes/EmpleadosAmbiocomRoutes.js';
+import GraficaInsumosvsAlcoholes from './routes/GraficaInsumosvsAlcoholesRoutes.js';
 
 import configuraciones from './config/config.js';
 
@@ -107,6 +108,8 @@ app.use('/api/notasbitacora', notasBitacoraSupervisoresRoute);
 app.use('/api/usuarios', UsuariosAmbiocomExtrasRoutes);
 app.use('/api/tanques', Tanques);
 app.use('/api/empleadosambiocom', EmpleadosAmbiocomModels);
+app.use('/api/empleadosambiocom', EmpleadosAmbiocomModels);
+app.use('/api/graficainsumoskgoh', GraficaInsumosvsAlcoholes);
 
 app.post('/api/gemini/message', async (req, res) => {
   const { message } = req.body;
