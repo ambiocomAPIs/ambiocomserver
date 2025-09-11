@@ -109,7 +109,7 @@ app.use('/api/usuarios', UsuariosAmbiocomExtrasRoutes);
 app.use('/api/tanques', Tanques);
 app.use('/api/empleadosambiocom', EmpleadosAmbiocomModels);
 app.use('/api/empleadosambiocom', EmpleadosAmbiocomModels);
-app.use('/api/graficainsumoskgoh', GraficaInsumosvsAlcoholes);
+app.use('/api/graficainsumosoh', GraficaInsumosvsAlcoholes);
 
 app.post('/api/gemini/message', async (req, res) => {
   const { message } = req.body;
