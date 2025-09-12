@@ -28,6 +28,8 @@ export const obtenerGraficaInsumoskgoh = async (req, res) => {
 // aqui empiezan los endpoint para precio por litro
 // Crear nuevo registro
 export const crearGraficaInsumoscopoh = async (req, res) => {
+  console.log("LLEGA AL BACKEND:", req.body);
+  
   
   try {
     const nuevaProduccion = new GraficaCostosInsumosvsAlcoholesModel(req.body);
