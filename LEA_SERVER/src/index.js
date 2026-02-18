@@ -7,6 +7,7 @@ import path from 'path';
 import fs from 'fs';
 import { fileURLToPath } from 'url';
 import { OpenAI } from 'openai'
+import cookieParser from "cookie-parser";
 
 // Para obtener __dirname en ES modules
 const __filename = fileURLToPath(import.meta.url);
@@ -29,6 +30,22 @@ import UsuariosAmbiocomExtrasRoutes from './routes/UsuariosAmbiocomExtrasRoutes.
 import Tanques from './routes/TanquesRoutes.js'
 import EmpleadosAmbiocomModels from './routes/EmpleadosAmbiocomRoutes.js';
 import GraficaInsumosvsAlcoholes from './routes/GraficaInsumosvsAlcoholesRoutes.js';
+import MedidoresAgua from './routes/medidoresAguaRoutes.js'
+import ColumnaMedidoresAgua from './routes/ColumnaMedidorRoutes.js'
+import ColumnaMedidoresEnergia from './routes/ColumnaMedidorEnergiaRoutes.js'
+import MedidoresEnergia from './routes/medidoresEnergiaRoutes.js'
+import ColumnaIngresoCarbonMadera from './routes/ColumnaIngresoCarbonMadera.js'
+import ingresoCarbonMadera from './routes/medidoresIngresoCarbonMadera.js'
+//Modulo informes
+import InformeAlcoholes from "./routes/informesAlcoholRoutes.js"
+//Modulo_Logistica
+import RecepcionAlcoholesLogistica from "./routes/Modulo_Logistica/RecepcionAlcoholesLogisticaRoutes.js"
+import ColumnaRecepcionAlcoholesLogistica from "./routes/Modulo_Logistica/ColumnaRecepcionAlcoholesLogisticaRoutes.js"
+import DespachoAlcoholesLogistica from "./routes/Modulo_Logistica/DespachoAlcoholesLogisticaRoutes.js"
+import ColumnaDespachoAlcoholesLogistica from "./routes/Modulo_Logistica/ColumnaDespachoAlcoholesLogisticaRoutes.js"
+//autenticacion y login
+import authRoutes from "./routes/Login/auth.routes.js";
+import usersRoutes from "./routes/Login/users.routes.js";
 
 import configuraciones from './config/config.js';
 
@@ -45,17 +62,27 @@ const imageDir = path.join(__dirname, '../public/imagenes');
 fs.mkdirSync(imageDir, { recursive: true });
 
 // Middleware global CORS
-const corsOptionsGlobal = {
-  origin: [
-    'http://127.0.0.1:5173',
-    'http://localhost:5173',
-    'http://localhost:4041',
-    'https://ambiocomsassgc.netlify.app'
-  ],
-  optionsSuccessStatus: 200
+const allowedOrigins = new Set([
+  "http://127.0.0.1:5173",
+  "http://localhost:5173",
+  "https://ambiocomsassgc.netlify.app",
+]);
+
+const corsOptions = {
+  origin: (origin, cb) => {
+    if (!origin) return cb(null, true);
+    if (allowedOrigins.has(origin)) return cb(null, true);
+    return cb(new Error("CORS bloqueado: " + origin), false);
+  },
+  credentials: true,
+  methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization"],
+  optionsSuccessStatus: 200,
 };
 
-app.use(cors(corsOptionsGlobal)); // middleware global CORS
+app.use(cors(corsOptions));
+app.options("*", cors(corsOptions));
+app.use(cookieParser());
 
 // Middleware para logs y JSON
 app.use(morgan('dev'));
@@ -110,7 +137,23 @@ app.use('/api/tanques', Tanques);
 app.use('/api/empleadosambiocom', EmpleadosAmbiocomModels);
 app.use('/api/empleadosambiocom', EmpleadosAmbiocomModels);
 app.use('/api/graficainsumosoh', GraficaInsumosvsAlcoholes);
-
+app.use('/api/medidoresagua', MedidoresAgua);
+app.use('/api/columnamedidoresagua', ColumnaMedidoresAgua);
+app.use('/api/medidoresenergia', MedidoresEnergia);
+app.use('/api/columnamedidoresenergia', ColumnaMedidoresEnergia);
+app.use('/api/ingresocarbonmadera', ingresoCarbonMadera);
+app.use('/api/columnaingresocarbonmadera', ColumnaIngresoCarbonMadera);
+//Modulo Informes
+app.use("/api/informes-alcoholes", InformeAlcoholes);
+//Modulo Logistica
+app.use("/api/recepcion-alcoholes", RecepcionAlcoholesLogistica)
+app.use("/api/despacho-alcoholes", DespachoAlcoholesLogistica)
+app.use("/api/columna-recepcion-alcoholes", ColumnaRecepcionAlcoholesLogistica)
+app.use("/api/columna-despacho-alcoholes", ColumnaDespachoAlcoholesLogistica)
+//autenticacion y login
+app.use("/api/auth", authRoutes);
+app.use("/api/users", usersRoutes);
+//IA
 app.post('/api/gemini/message', async (req, res) => {
   const { message } = req.body;
 
@@ -154,6 +197,65 @@ app.post('/api/gemini/message', async (req, res) => {
     res.status(500).json({ error: 'Error al contactar Gemini' });
   }
 });
+
+// 
+app.post("/api/informes-alcoholes", async (req, res) => {
+  try {
+    const body = req.body;
+
+    // Validar fecha y zonas básicas
+    if (!body.fecha || !Array.isArray(body.zonas)) {
+      return res.status(400).json({ error: "Fecha y zonas son requeridas" });
+    }
+
+    // Crear nuevo documento
+    const nuevoInforme = new InformeAlcoholHistorico(body);
+
+    // Guardar en la DB
+    await nuevoInforme.save();
+
+    res.status(201).json({ message: "Informe guardado correctamente", id: nuevoInforme._id });
+  } catch (error) {
+    console.error("Error guardando informe:", error);
+    res.status(500).json({ error: "Error interno del servidor" });
+  }
+});
+
+import  { User } from "./models/Login/User.js"
+
+app.post("/api/seed-users", async (req, res) => {
+  try {
+    const users = req.body;
+
+    if (!Array.isArray(users)) {
+      return res.status(400).json({ message: "Debe enviar un arreglo" });
+    }
+
+    let created = 0;
+
+    for (const u of users) {
+      const exists = await User.findOne({ email: u.email });
+      if (exists) continue;
+
+      const user = new User({
+        email: u.email,
+        rol: u.rol,
+        isActive: true,
+      });
+
+      await user.setPassword(u.password); // 🔐 convierte a hash
+      await user.save();
+
+      created++;
+    }
+
+    res.json({ message: "Usuarios creados", created });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Error" });
+  }
+});
+
 
 // Iniciar servidor
 app.listen(PORT, () => {

@@ -199,3 +199,77 @@ export const eliminarPorFechaRegistro = async (req, res) => {
     res.status(500).json({ message: 'Error al eliminar registros por fecha.', error });
   }
 };
+
+// GET - Obtener registros por FechaRegistro (yyyy-mm-dd)
+export const obtenerNivelesPorFecha = async (req, res) => {
+  try {
+    const { fecha } = req.params;
+
+    // Validar formato yyyy-mm-dd
+    const datePattern = /^\d{4}-\d{2}-\d{2}$/;
+    if (!datePattern.test(fecha)) {
+      return res
+        .status(400)
+        .json({ message: "La fecha debe estar en formato YYYY-MM-DD" });
+    }
+
+    const registros = await NivelDiarioJornalerosLogistica
+      .find({ FechaRegistro: fecha })
+      .sort({ NombreTanque: 1 }); // opcional: orden A-Z
+
+    if (!registros || registros.length === 0) {
+      return res.status(200).json([]); // 👈 importante: devuelve array vacío
+    }
+
+    res.status(200).json(registros);
+  } catch (error) {
+    console.error("❌ Error al consultar por fecha:", error);
+    res.status(500).json({ message: "Error al consultar por fecha", error });
+  }
+};
+
+// PUT - Actualizar registros por FechaRegistro (reemplaza todos los de esa fecha)
+export const actualizarNivelesPorFecha = async (req, res) => {
+  const datos = req.body;
+
+  if (!Array.isArray(datos) || datos.length === 0) {
+    return res.status(400).json({ message: "Se debe enviar un array de datos." });
+  }
+
+  try {
+    const { FechaRegistro } = datos[0];
+
+    // Validar formato de la fecha
+    const datePattern = /^\d{4}-\d{2}-\d{2}$/;
+    if (!datePattern.test(FechaRegistro)) {
+      return res
+        .status(400)
+        .json({ message: "La fecha debe estar en formato YYYY-MM-DD." });
+    }
+
+    // Eliminar registros existentes de esa fecha
+    await NivelDiarioJornalerosLogistica.deleteMany({ FechaRegistro });
+
+    // Insertar los nuevos registros
+    const nuevos = await NivelDiarioJornalerosLogistica.insertMany(
+      datos.map((d) => ({
+        NombreTanque: d.NombreTanque,
+        NivelTanque: d.NivelTanque,
+        Responsable: d.Responsable || "",
+        Observaciones: d.Observaciones || "",
+        FechaRegistro: d.FechaRegistro,
+        Factor: d.Factor,
+        Disposicion: d.Disposicion,
+      }))
+    );
+
+    res.status(200).json({
+      message: "Registros actualizados correctamente",
+      actualizados: nuevos.length,
+      data: nuevos,
+    });
+  } catch (error) {
+    console.error("❌ Error al actualizar por fecha:", error);
+    res.status(500).json({ message: "Error al actualizar los registros", error });
+  }
+};
