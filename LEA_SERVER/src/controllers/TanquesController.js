@@ -10,13 +10,13 @@ export const getTanques = async (req, res) => {
   }
 };
 
-// Crear un nuevo tanque ..
+// Crear un nuevo tanque
 export const createTanque = async (req, res) => {
   
   try {
     const { NombreTanque } = req.body;
 
-    // Verificar si ya existe un tanque con ese nombre (case-insensitive opcional) 
+    // Verificar si ya existe un tanque con ese nombre (case-insensitive opcional)
     const existe = await Tanques.findOne({ NombreTanque });
 
     if (existe) {
