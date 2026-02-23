@@ -47,6 +47,7 @@ import DespachoAlcoholesLogistica from "./routes/Modulo_Logistica/DespachoAlcoho
 import ColumnaDespachoAlcoholesLogistica from "./routes/Modulo_Logistica/ColumnaDespachoAlcoholesLogisticaRoutes.js";
 import conductorRoutes from "./routes/Modulo_Logistica/Conductores/conductorRoutes.js";
 import ProductoDespacho from "./routes/Modulo_Logistica/Producto/ProductoDespachoRoutes.js";
+import DevCredentialValidation from "./routes/Dev_Functions/authDevCredentials.routes.js"
 //autenticacion y login
 import authRoutes from "./routes/Login/auth.routes.js";
 import usersRoutes from "./routes/Login/users.routes.js";
@@ -178,6 +179,7 @@ app.use("/api/columna-recepcion-alcoholes", ColumnaRecepcionAlcoholesLogistica);
 app.use("/api/columna-despacho-alcoholes", ColumnaDespachoAlcoholesLogistica);
 app.use("/api/conductores", conductorRoutes);
 app.use("/api/alcoholesdespacho", ProductoDespacho);
+app.use("/api/auth", DevCredentialValidation);
 //autenticacion y login
 app.use("/api/auth", authRoutes);
 app.use("/api/users", usersRoutes);
