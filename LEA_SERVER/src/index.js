@@ -49,6 +49,7 @@ import conductorRoutes from "./routes/Modulo_Logistica/Conductores/conductorRout
 import ProductoDespacho from "./routes/Modulo_Logistica/Producto/ProductoDespachoRoutes.js";
 import DevCredentialValidation from "./routes/Dev_Functions/authDevCredentials.routes.js"
 import ColaboradoresLogistica from "./routes/Modulo_Logistica/Colaboradores/ColaboradoresLogisticaRoutes.js"
+import ClientesLogistica from "./routes/Modulo_Logistica/Clientes/ClientesLogisticaRoutes.js"
 //autenticacion y login
 import authRoutes from "./routes/Login/auth.routes.js";
 import usersRoutes from "./routes/Login/users.routes.js";
@@ -182,9 +183,11 @@ app.use("/api/conductores", conductorRoutes);
 app.use("/api/alcoholesdespacho", ProductoDespacho);
 app.use("/api/auth", DevCredentialValidation);
 app.use("/api/personal", ColaboradoresLogistica);
+app.use("/api/clienteslogistica", ClientesLogistica);
 //autenticacion y login
 app.use("/api/auth", authRoutes);
 app.use("/api/users", usersRoutes);
+
 
 //==== CONSUMO BASE DE DATOS TEST / PRODUCTION (NO BORRAR) =====
 app.get("/api/meta", (req, res) => {
