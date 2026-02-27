@@ -46,6 +46,11 @@ import ColumnaRecepcionAlcoholesLogistica from "./routes/Modulo_Logistica/Column
 import DespachoAlcoholesLogistica from "./routes/Modulo_Logistica/DespachoAlcoholesLogisticaRoutes.js";
 import ColumnaDespachoAlcoholesLogistica from "./routes/Modulo_Logistica/ColumnaDespachoAlcoholesLogisticaRoutes.js";
 import conductorRoutes from "./routes/Modulo_Logistica/Conductores/conductorRoutes.js";
+import ProductoDespacho from "./routes/Modulo_Logistica/Producto/ProductoDespachoRoutes.js";
+import DevCredentialValidation from "./routes/Dev_Functions/authDevCredentials.routes.js"
+import ColaboradoresLogistica from "./routes/Modulo_Logistica/Colaboradores/ColaboradoresLogisticaRoutes.js"
+import ClientesLogistica from "./routes/Modulo_Logistica/Clientes/ClientesLogisticaRoutes.js"
+import TransportadorasLogistica from "./routes/Modulo_Logistica/Transportadoras/TransportadoraLogisticaRoutes.js"
 //autenticacion y login
 import authRoutes from "./routes/Login/auth.routes.js";
 import usersRoutes from "./routes/Login/users.routes.js";
@@ -55,7 +60,12 @@ import configuraciones from "./config/config.js";
 dotenv.config();
 
 const app = express();
-const PORT = configuraciones.PORT || 4040;
+
+// ✅ Render necesita process.env.PORT sí o sí
+const PORT = process.env.PORT || configuraciones.PORT || 4040;
+
+// ✅ Importante cuando estás detrás de proxy (Render) y manejas cookies/secure
+app.set("trust proxy", 1);
 
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
 
@@ -65,26 +75,43 @@ const imageDir = path.join(__dirname, "../public/imagenes");
 fs.mkdirSync(imageDir, { recursive: true });
 
 // Middleware global CORS
-const allowedOrigins = new Set([
+// ✅ OJO: cors no maneja bien Set aquí, mejor array
+const allowedOrigins = [
   "http://127.0.0.1:5173",
   "http://localhost:5173",
   "https://ambiocomsassgc.netlify.app",
-]);
+];
 
+// ✅ Definición real de corsOptions (en tu código lo estabas usando pero no existía)
 const corsOptions = {
-  origin: (origin, cb) => {
-    if (!origin) return cb(null, true);
-    if (allowedOrigins.has(origin)) return cb(null, true);
-    return cb(new Error("CORS bloqueado: " + origin), false);
-  },
+  origin: allowedOrigins,
   credentials: true,
   methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
   allowedHeaders: ["Content-Type", "Authorization"],
   optionsSuccessStatus: 200,
 };
 
+app.use(
+  cors({
+    origin: allowedOrigins,
+    credentials: true,
+    methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"],
+  })
+);
+
+app.options(
+  "*",
+  cors({
+    origin: allowedOrigins,
+    credentials: true,
+    methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"],
+  })
+);
+
 app.use(cors(corsOptions));
-app.options("*", cors(corsOptions));
+// app.options("*", cors(corsOptions));
 app.use(cookieParser());
 
 // Middleware para logs y JSON
@@ -154,9 +181,15 @@ app.use("/api/despacho-alcoholes", DespachoAlcoholesLogistica);
 app.use("/api/columna-recepcion-alcoholes", ColumnaRecepcionAlcoholesLogistica);
 app.use("/api/columna-despacho-alcoholes", ColumnaDespachoAlcoholesLogistica);
 app.use("/api/conductores", conductorRoutes);
+app.use("/api/alcoholesdespacho", ProductoDespacho);
+app.use("/api/auth", DevCredentialValidation);
+app.use("/api/personal", ColaboradoresLogistica);
+app.use("/api/clienteslogistica", ClientesLogistica);
+app.use("/api/transportadoraslogistica", TransportadorasLogistica);
 //autenticacion y login
 app.use("/api/auth", authRoutes);
 app.use("/api/users", usersRoutes);
+
 
 //==== CONSUMO BASE DE DATOS TEST / PRODUCTION (NO BORRAR) =====
 app.get("/api/meta", (req, res) => {
@@ -188,19 +221,12 @@ app.post("/api/gemini/message", async (req, res) => {
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error(
-        "❌ Error en respuesta de Gemini:",
-        response.status,
-        errorText
-      );
+      console.error("❌ Error en respuesta de Gemini:", response.status, errorText);
       return res.status(500).json({ error: "Gemini API respondió con error" });
     }
 
     const data = await response.json();
-    console.log(
-      "🧠 Respuesta completa de Gemini:",
-      JSON.stringify(data, null, 2)
-    );
+    console.log("🧠 Respuesta completa de Gemini:", JSON.stringify(data, null, 2));
 
     let reply = "⚠️ Sin respuesta de Gemini";
 
@@ -234,12 +260,10 @@ app.post("/api/informes-alcoholes", async (req, res) => {
     // Guardar en la DB
     await nuevoInforme.save();
 
-    res
-      .status(201)
-      .json({
-        message: "Informe guardado correctamente",
-        id: nuevoInforme._id,
-      });
+    res.status(201).json({
+      message: "Informe guardado correctamente",
+      id: nuevoInforme._id,
+    });
   } catch (error) {
     console.error("Error guardando informe:", error);
     res.status(500).json({ error: "Error interno del servidor" });

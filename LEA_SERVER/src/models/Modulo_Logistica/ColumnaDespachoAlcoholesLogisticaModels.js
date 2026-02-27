@@ -32,8 +32,12 @@ const ColumnaDespachoAlcoholesLogistica = new mongoose.Schema(
 
     totalizable: {
       type: Boolean,
-      required: true, 
-      default: false, 
+      required: true,
+      default: false,
+    },
+    rolesDigitables: {
+      type: [String],
+      default: ["developer"],
     },
   },
   {
