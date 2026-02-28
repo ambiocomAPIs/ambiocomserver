@@ -6,7 +6,7 @@ import {
   createProgramacion,
   updateProgramacion,
   deleteProgramacion,
-} from "../../../controllers/Modulo_Logistica/ProgramacionDespacho/ProgramacionDespacho.controller.js";
+} from "../../../controllers/Modulo_Logistica/ProgramacionDespacho/programacionDespacho.controller.js";
 
 const router = Router();
 
