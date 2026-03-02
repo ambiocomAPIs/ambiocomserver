@@ -5,18 +5,35 @@ import ColumnaDespacho from "../../models/Modulo_Logistica/ColumnaDespachoAlcoho
 
 const CAMPOS_FIJOS = ["fecha", "responsable", "observaciones"];
 
+// ============================
+// ✅ HELPERS PARA /rango
+// ============================
+const ISO_DATE_REGEX = /^\d{4}-\d{2}-\d{2}$/;
+
+const normalizeText = (v) =>
+  String(v ?? "")
+    .replace(/\u00A0/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+
+const isValidISODate = (s) => {
+  const v = normalizeText(s);
+  if (!ISO_DATE_REGEX.test(v)) return false;
+
+  const [yyyy, mm, dd] = v.split("-").map((x) => Number(x));
+  if (mm < 1 || mm > 12) return false;
+  if (dd < 1 || dd > 31) return false;
+
+  const dt = new Date(yyyy, mm - 1, dd);
+  return dt.getFullYear() === yyyy && dt.getMonth() === mm - 1 && dt.getDate() === dd;
+};
+
 /* ================= CREAR ================= */
 export const crearDespachoAlcohol = async (req, res) => {
   console.log("respuesta que llega:", req.body);
-  
+
   try {
-    const {
-      fecha,
-      responsable,
-      observaciones,
-      lecturas,
-    } = req.body;
-    
+    const { fecha, responsable, observaciones, lecturas } = req.body;
 
     if (!fecha || !responsable || !lecturas) {
       return res.status(400).json({
@@ -53,6 +70,74 @@ export const obtenerDespachoAlcohol = async (req, res) => {
   } catch (error) {
     res.status(500).json({
       message: "Error al obtener los ingresos de carbon y madera",
+      error: error.message,
+    });
+  }
+};
+
+/* =======================================================
+   ✅ NUEVO ENDPOINT
+   GET /api/despacho-alcoholes/rango?from=YYYY-MM-DD&to=YYYY-MM-DD
+   - rango incluyente sobre "fecha" tipo STRING (YYYY-MM-DD)
+   - (Opcional) soporta q para buscar dentro de lecturas/responsable/observaciones si quieres
+======================================================= */
+export const obtenerDespachoAlcoholByRango = async (req, res) => {
+  try {
+    const { from, to, q } = req.query;
+
+    const fFrom = from ? normalizeText(from) : null;
+    const fTo = to ? normalizeText(to) : null;
+
+    if (!fFrom && !fTo) {
+      return res.status(400).json({
+        message: 'Debes enviar al menos "from" o "to" en formato YYYY-MM-DD.',
+      });
+    }
+
+    if (fFrom && !isValidISODate(fFrom)) {
+      return res.status(400).json({ message: 'Filtro "from" inválido. Use "YYYY-MM-DD".' });
+    }
+
+    if (fTo && !isValidISODate(fTo)) {
+      return res.status(400).json({ message: 'Filtro "to" inválido. Use "YYYY-MM-DD".' });
+    }
+
+    if (fFrom && fTo && fFrom > fTo) {
+      return res.status(400).json({
+        message: 'Rango inválido: "from" no puede ser mayor que "to".',
+      });
+    }
+
+    const filter = {};
+
+    // ✅ Rango incluyente sobre string ISO YYYY-MM-DD
+    filter.fecha = {};
+    if (fFrom) filter.fecha.$gte = fFrom;
+    if (fTo) filter.fecha.$lte = fTo;
+
+    // ✅ buscador opcional
+    if (q) {
+      const text = normalizeText(q);
+      const re = new RegExp(text.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "i");
+      filter.$or = [
+        { fecha: re },
+        { responsable: re },
+        { observaciones: re },
+        // Busca dentro del objeto lecturas (Mongo permite regex por paths)
+        { "lecturas.placa": re },
+        { "lecturas.transportadora": re },
+        { "lecturas.cliente": re },
+        { "lecturas.producto": re },
+      ];
+    }
+
+    const data = await ModelDespachoAlcohol.find(filter).sort({ fecha: 1, createdAt: -1 });
+
+    return res.json(data);
+  } catch (error) {
+    console.error("obtenerDespachoAlcoholByRango error:", error);
+    return res.status(500).json({
+      message: "Error consultando despachos por rango.",
       error: error.message,
     });
   }
@@ -115,7 +200,6 @@ export const eliminarDespachoAlcohol = async (req, res) => {
 // Carga masivo desde Excel
 export const cargarDespachoAlcoholDesdeExcel = async (req, res) => {
   try {
-
     if (!req.file) {
       return res.status(400).json({ error: "No se envió ningún archivo" });
     }
@@ -155,38 +239,34 @@ export const cargarDespachoAlcoholDesdeExcel = async (req, res) => {
     console.log("🧾 Primera fila normalizada:", filas[0]);
 
     /* ===== Eliminar filas vacías ===== */
-    filas = filas.filter(f =>
-      Object.values(f).some(v => v !== null && v !== "" && v !== undefined)
+    filas = filas.filter((f) =>
+      Object.values(f).some((v) => v !== null && v !== "" && v !== undefined)
     );
 
     console.log("🧹 Filas después de limpiar vacías:", filas.length);
 
     /* ===== Validación dinámica ===== */
     const columnas = await ColumnaDespacho.find({});
-    const keysColumnas = columnas.map(c => c.key.trim());
+    const keysColumnas = columnas.map((c) => c.key.trim());
 
     console.log("🗄️ Keys BD:", keysColumnas);
 
-    const headersExcel = Object.keys(filas[0]).map(h => h.trim());
+    const headersExcel = Object.keys(filas[0]).map((h) => h.trim());
 
     console.log("📑 Headers Excel:", headersExcel);
 
-    const headersDinamicos = headersExcel.filter(
-      h => !CAMPOS_FIJOS.includes(h)
-    );
+    const headersDinamicos = headersExcel.filter((h) => !CAMPOS_FIJOS.includes(h));
 
     console.log("⚙️ Headers dinámicos:", headersDinamicos);
 
-    const headersInvalidos = headersDinamicos.filter(
-      h => !keysColumnas.includes(h)
-    );
+    const headersInvalidos = headersDinamicos.filter((h) => !keysColumnas.includes(h));
 
     console.log("❌ Headers inválidos:", headersInvalidos);
 
     if (headersInvalidos.length > 0) {
       return res.status(400).json({
         error: "El Excel tiene columnas dinámicas no registradas en la BD",
-        headersInvalidos
+        headersInvalidos,
       });
     }
 
@@ -210,8 +290,7 @@ export const cargarDespachoAlcoholDesdeExcel = async (req, res) => {
     const normalizarFecha = (fecha) => {
       let fechaObj;
       if (fecha instanceof Date) fechaObj = fecha;
-      else if (typeof fecha === "number")
-        fechaObj = new Date(Date.UTC(1900, 0, fecha - 1));
+      else if (typeof fecha === "number") fechaObj = new Date(Date.UTC(1900, 0, fecha - 1));
       else if (typeof fecha === "string") {
         const parsed = new Date(fecha);
         if (isNaN(parsed)) throw new Error(`Fecha inválida: ${fecha}`);
@@ -250,7 +329,7 @@ export const cargarDespachoAlcoholDesdeExcel = async (req, res) => {
           fecha,
           responsable: responsable || "NA",
           observaciones: observaciones || "NA",
-          lecturas
+          lecturas,
         });
 
         console.log("✅ Insertada fila", i + 2);
@@ -262,7 +341,7 @@ export const cargarDespachoAlcoholDesdeExcel = async (req, res) => {
         errores.push({
           filaExcel: i + 2,
           error: e.message,
-          datos: fila
+          datos: fila,
         });
       }
     }
@@ -271,26 +350,25 @@ export const cargarDespachoAlcoholDesdeExcel = async (req, res) => {
     console.log("📈 Resultado:", {
       totalFilas: filas.length,
       insertados,
-      errores: errores.length
+      errores: errores.length,
     });
 
     res.json({
       totalFilas: filas.length,
       insertados,
       errores,
-      mensaje: "Carga completada correctamente"
+      mensaje: "Carga completada correctamente",
     });
-
   } catch (error) {
     console.error("❌ Error general carga Excel:", error);
     res.status(500).json({
       error: "Error procesando el archivo Excel",
-      detalle: error.message
+      detalle: error.message,
     });
   }
 };
 
-// Descargar plntilla
+// Descargar plantilla
 export const descargaPlantillaExcel = async (req, res) => {
   try {
     const columnas = await ColumnaDespacho.find({});
