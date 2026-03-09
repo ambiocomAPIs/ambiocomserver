@@ -250,17 +250,11 @@ export const cargarDespachoAlcoholDesdeExcel = async (req, res) => {
     const keysColumnas = columnas.map((c) => c.key.trim());
 
     console.log("🗄️ Keys BD:", keysColumnas);
-
     const headersExcel = Object.keys(filas[0]).map((h) => h.trim());
-
     console.log("📑 Headers Excel:", headersExcel);
-
     const headersDinamicos = headersExcel.filter((h) => !CAMPOS_FIJOS.includes(h));
-
     console.log("⚙️ Headers dinámicos:", headersDinamicos);
-
     const headersInvalidos = headersDinamicos.filter((h) => !keysColumnas.includes(h));
-
     console.log("❌ Headers inválidos:", headersInvalidos);
 
     if (headersInvalidos.length > 0) {
