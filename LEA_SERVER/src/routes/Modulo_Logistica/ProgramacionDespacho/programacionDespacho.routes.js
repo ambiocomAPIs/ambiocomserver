@@ -6,6 +6,7 @@ import {
   createProgramacion,
   updateProgramacion,
   deleteProgramacion,
+  updateCumplidoProgramacion
 } from "../../../controllers/Modulo_Logistica/ProgramacionDespacho/programacionDespacho.controller.js";
 
 const router = Router();
@@ -19,5 +20,6 @@ router.get("/:id", getProgramacionById);
 router.post("/", createProgramacion);
 router.put("/:id", updateProgramacion);
 router.delete("/:id", deleteProgramacion);
+router.patch("/:id/cumplido", updateCumplidoProgramacion);
 
 export default router;

@@ -205,6 +205,7 @@ export const createProgramacion = async (req, res) => {
       destino: normalizeText(req.body.destino),
       producto: normalizeText(req.body.producto),
       cantidad: Number(req.body.cantidad),
+      cumplido: Boolean(req.body.cumplido),
     };
 
     const created = await ProgramacionDespacho.create(payload);
@@ -241,6 +242,7 @@ export const updateProgramacion = async (req, res) => {
       destino: normalizeText(req.body.destino),
       producto: normalizeText(req.body.producto),
       cantidad: Number(req.body.cantidad),
+      cumplido: Boolean(req.body.cumplido),
     };
 
     const updated = await ProgramacionDespacho.findByIdAndUpdate(id, payload, {
@@ -275,5 +277,34 @@ export const deleteProgramacion = async (req, res) => {
   } catch (error) {
     console.error("deleteProgramacion error:", error);
     return res.status(400).json({ message: "No se pudo eliminar la programación." });
+  }
+};
+
+// PATCH /api/programaciondespacho/:id/cumplido con checklist
+export const updateCumplidoProgramacion = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { cumplido } = req.body;
+
+    if (typeof cumplido !== "boolean") {
+      return res.status(400).json({
+        message: 'El campo "cumplido" debe ser booleano.',
+      });
+    }
+
+    const updated = await ProgramacionDespacho.findByIdAndUpdate(
+      id,
+      { cumplido },
+      { new: true, runValidators: true }
+    );
+
+    if (!updated) {
+      return res.status(404).json({ message: "Programación no encontrada." });
+    }
+
+    return res.json(updated);
+  } catch (error) {
+    console.error("updateCumplidoProgramacion error:", error);
+    return res.status(400).json({ message: "No se pudo actualizar el check de cumplimiento." });
   }
 };

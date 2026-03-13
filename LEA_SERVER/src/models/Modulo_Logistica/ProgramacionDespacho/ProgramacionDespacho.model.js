@@ -58,6 +58,10 @@ const ProgramacionDespachoSchema = new mongoose.Schema(
       required: [true, "La cantidad es obligatoria."],
       min: [1, "La cantidad debe ser mayor a 0."],
     },
+    cumplido: {
+      type: Boolean,
+      default: false,
+    },
   },
   {
     timestamps: true,
