@@ -16,6 +16,9 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 import db from "./db/db.js";
+//mailer para backups
+import "./utils/backupDespachosMailer.js"  // para que cron lo ejecute
+// otros modulos
 import pdfRoutes from "./routes/pdfRoutes.js";
 import dataRoutes from "./routes/dataRoutes.js";
 import sendEmail from "./routes/emailRouter.js";

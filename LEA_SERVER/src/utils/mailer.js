@@ -92,7 +92,7 @@ const generateEmailBody = (productos, tipo) => {
 };
 
 // Tarea que se ejecuta cada minuto
-cron.schedule('0 */5 * * *', async () => {  // Ejecutar cada minuto
+cron.schedule('0 */12 * * *', async () => {  // Ejecutar cada minuto
   console.log('Tarea ejecutada cada minuto');
 
   try {
@@ -114,7 +114,7 @@ cron.schedule('0 */5 * * *', async () => {  // Ejecutar cada minuto
     `;
     // Lógica de la tarea que se ejecuta cada minuto (puedes agregarla según tus necesidades)
     console.log('Ejecutando tarea periódica...');
-    sendEmailData('TESTING CADA 5 MINUTOS', body)
+    sendEmailData('TESTING MONITOREO CADA 12 HORAS', body)
   } catch (error) {
     console.error('Error al ejecutar la tarea cada minuto:', error);
   }
