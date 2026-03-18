@@ -58,17 +58,18 @@ import ProgramacionDespacho from "./routes/Modulo_Logistica/ProgramacionDespacho
 //autenticacion y login
 import authRoutes from "./routes/Login/auth.routes.js";
 import usersRoutes from "./routes/Login/users.routes.js";
-
+// Captura de tráfico de peticiones HTTP
+import trafficLogger from "./middlewares/System/trafficLogger.js";
+import trafficRoutes from "./routes/System/traffic.routes.js";
+//CONFIGS
 import configuraciones from "./config/config.js";
 
 dotenv.config();
 
 const app = express();
-
-// ✅ Render necesita process.env.PORT sí o sí
+//  Render necesita process.env.PORT sí o sí
 const PORT = process.env.PORT || configuraciones.PORT || 4040;
-
-// ✅ Importante cuando estás detrás de proxy (Render) y manejas cookies/secure
+//  Importante cuando estás detrás de proxy (Render) y manejas cookies/secure
 app.set("trust proxy", 1);
 
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
@@ -121,6 +122,8 @@ app.use(cookieParser());
 // Middleware para logs y JSON
 app.use(morgan("dev"));
 app.use(express.json());
+// ejecutador de middleware para captura de trafico
+app.use(trafficLogger);
 
 // Servir archivos estáticos públicos
 app.use(express.static("public"));
@@ -169,7 +172,7 @@ app.use("/api/notasbitacora", notasBitacoraSupervisoresRoute);
 app.use("/api/usuarios", UsuariosAmbiocomExtrasRoutes);
 app.use("/api/tanques", Tanques);
 app.use("/api/empleadosambiocom", EmpleadosAmbiocomModels);
-app.use("/api/empleadosambiocom", EmpleadosAmbiocomModels);
+// app.use("/api/empleadosambiocom", EmpleadosAmbiocomModels);
 app.use("/api/graficainsumosoh", GraficaInsumosvsAlcoholes);
 app.use("/api/medidoresagua", MedidoresAgua);
 app.use("/api/columnamedidoresagua", ColumnaMedidoresAgua);
@@ -194,7 +197,8 @@ app.use("/api/programaciondespacho", ProgramacionDespacho);
 //autenticacion y login
 app.use("/api/auth", authRoutes);
 app.use("/api/users", usersRoutes);
-
+//Captura de trafico
+app.use("/api/system/traffic", trafficRoutes);
 
 //==== CONSUMO BASE DE DATOS TEST / PRODUCTION (NO BORRAR) =====
 app.get("/api/meta", (req, res) => {

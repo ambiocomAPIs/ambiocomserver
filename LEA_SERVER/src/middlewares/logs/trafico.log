@@ -1,0 +1,6 @@
+[18/3/2026 8:38:50] POST http://localhost:4041/api/auth/login | status=200 | time=644ms | ip=::1
+[18/3/2026 9:03:47] DELETE http://localhost:4041/api/despacho-alcoholes/69b94a0a61987cc2828dc1ac | status=200 | time=154ms | ip=::1
+[18/3/2026 9:03:52] DELETE http://localhost:4041/api/despacho-alcoholes/69b94a0b61987cc2828dc1ae | status=200 | time=175ms | ip=::1
+[18/3/2026 9:03:55] DELETE http://localhost:4041/api/despacho-alcoholes/69b94a0b61987cc2828dc1b4 | status=200 | time=124ms | ip=::1
+[18/3/2026 9:04:24] DELETE http://localhost:4041/api/despacho-alcoholes/69b94a0b61987cc2828dc1b0 | status=200 | time=120ms | ip=::1
+[18/3/2026 9:05:02] DELETE http://localhost:4041/api/despacho-alcoholes/69b86f91a9b0e7ccb9b4a681 | status=200 | time=222ms | ip=::1
