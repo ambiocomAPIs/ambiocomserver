@@ -200,14 +200,23 @@ app.use("/api/users", usersRoutes);
 //Captura de trafico
 app.use("/api/system/traffic", trafficRoutes);
 
-//==== CONSUMO BASE DE DATOS TEST / PRODUCTION (NO BORRAR) =====
+// ======= enpoint que verifica conexcion con el backend e internet (NO BORRAR) =========
+app.get("/api/health", (req, res) => {
+  res.status(200).json({
+    ok: true,
+    message: "Servidor activo",
+    timestamp: new Date()
+  });
+});
+// ============= CONSUMO BASE DE DATOS TEST / PRODUCTION (NO BORRAR) ====================
 app.get("/api/meta", (req, res) => {
   res.json({
     db: mongoose.connection.name,
     env: process.env.NODE_ENV,
   });
 });
-//==============================================================
+//=======================================================================================
+
 //IA
 app.post("/api/gemini/message", async (req, res) => {
   const { message } = req.body;
