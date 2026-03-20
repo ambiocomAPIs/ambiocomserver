@@ -28,18 +28,18 @@ export const getTrafficLogs = async (req, res) => {
 };
 
 export const deleteTrafficLogs = async (req, res) => {
-  try {
-    await TrafficLog.deleteMany({});
+  // try {
+  //   await TrafficLog.deleteMany({});
 
-    res.json({
-      ok: true,
-      message: "Logs eliminados correctamente",
-    });
-  } catch (error) {
-    res.status(500).json({
-      ok: false,
-      message: "Error eliminando logs",
-      error: error.message,
-    });
-  }
+  //   res.json({
+  //     ok: true,
+  //     message: "Logs eliminados correctamente",
+  //   });
+  // } catch (error) {
+  //   res.status(500).json({
+  //     ok: false,
+  //     message: "Error eliminando logs",
+  //     error: error.message,
+  //   });
+  // }
 };
