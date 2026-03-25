@@ -17,7 +17,8 @@ const __dirname = path.dirname(__filename);
 
 import db from "./db/db.js";
 //mailer para backups
-import "./utils/backupDespachosMailer.js"  // para que cron lo ejecute
+// import "./utils/backupDespachosMailer.js"  // para que cron lo ejecute
+import { enviarBackupDespachos } from "./utils/backupDespachosMailer.js";  // back up automatico desde Cron Job
 // otros modulos
 import pdfRoutes from "./routes/pdfRoutes.js";
 import dataRoutes from "./routes/dataRoutes.js";
@@ -216,7 +217,37 @@ app.get("/api/meta", (req, res) => {
   });
 });
 //=======================================================================================
+// ================ End poitn para ejecutar tareas desde cron
+app.post("/api/backup/manual", async (req, res) => {
+  try {
+    // 🔐 Seguridad básica
+    const auth = req.headers.authorization;
 
+    if (auth !== `Bearer ${process.env.CRON_SECRET}`) {
+      return res.status(401).json({
+        ok: false,
+        message: "No autorizado",
+      });
+    }
+
+    console.log("CRON EXTERNO: ejecutando backup...");
+
+    await enviarBackupDespachos();
+
+    res.json({
+      ok: true,
+      message: "Backup ejecutado correctamente",
+    });
+
+  } catch (error) {
+    console.error("Error ejecutando backup manual:", error);
+
+    res.status(500).json({
+      ok: false,
+      message: "Error ejecutando backup",
+    });
+  }
+});
 //IA
 app.post("/api/gemini/message", async (req, res) => {
   const { message } = req.body;
@@ -295,76 +326,6 @@ app.post("/api/seed-users", async (req, res) => {
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: "Error" });
-  }
-});
-
-
-import ProgramacionDespachoSeed from "./models/Modulo_Logistica/ProgramacionDespacho/ProgramacionDespacho.model.js"
-
-app.post("/api/programacion-despachos/bulk", async (req, res) => {
-  try {
-    const payload = req.body;
-
-    if (!Array.isArray(payload) || payload.length === 0) {
-      return res.status(400).json({
-        ok: false,
-        message: "El body debe ser un array JSON con al menos 1 registro."
-      });
-    }
-
-    // Normalización extra (por si mandan dd/mm/yyyy o espacios raros)
-    const normalize = (v) =>
-      String(v ?? "")
-        .replace(/\u00A0/g, " ")
-        .replace(/\s+/g, " ")
-        .trim();
-
-    const toISODate = (fecha) => {
-      const f = normalize(fecha);
-      // si ya viene YYYY-MM-DD
-      if (/^\d{4}-\d{2}-\d{2}$/.test(f)) return f;
-
-      // si viene dd/mm/yyyy
-      const m = f.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
-      if (m) {
-        const dd = m[1].padStart(2, "0");
-        const mm = m[2].padStart(2, "0");
-        const yyyy = m[3];
-        return `${yyyy}-${mm}-${dd}`;
-      }
-
-      return f; // dejarlo tal cual para que valide el schema y falle si está mal
-    };
-
-    const docs = payload.map((x) => ({
-      fecha: toISODate(x.fecha),
-      placa: normalize(x.placa),
-      trailer: normalize(x.trailer),
-      conductor: normalize(x.conductor),
-      transportadora: normalize(x.transportadora),
-      cliente: normalize(x.cliente),
-      destino: normalize(x.destino),
-      producto: normalize(x.producto),
-      cantidad: Number(x.cantidad)
-    }));
-
-    const inserted = await ProgramacionDespachoSeed.insertMany(docs, {
-      ordered: false // intenta insertar todos aunque alguno falle
-    });
-
-    return res.status(201).json({
-      ok: true,
-      insertedCount: inserted.length,
-      inserted
-    });
-  } catch (err) {
-    // Si hay errores de validación en bulk, mongoose suele devolver info útil
-    return res.status(500).json({
-      ok: false,
-      message: "Error insertando programación de despachos.",
-      error: err?.message ?? err,
-      details: err?.writeErrors ?? undefined
-    });
   }
 });
 

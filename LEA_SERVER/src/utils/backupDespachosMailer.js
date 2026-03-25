@@ -111,10 +111,12 @@ const enviarBackupDespachos = async () => {
 //   await enviarBackupDespachos();
 // });
 
-cron.schedule("0 17 * * *", async () => {
-    console.log("CRON BACKUP: ejecutando backup automático de despachos...");
-    await enviarBackupDespachos();
-});
+// cron.schedule("0 15 * * *", async () => {
+//     console.log("CRON BACKUP ejecutando...");
+//     await enviarBackupDespachos();
+// }, {
+//     timezone: "America/Bogota"
+// });
 
 // cron.schedule("* * * * *", async () => {
 //     console.log("TEST CRON: ejecutando backup automático de despachos...");
