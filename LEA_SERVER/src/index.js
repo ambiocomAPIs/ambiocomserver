@@ -19,6 +19,7 @@ import db from "./db/db.js";
 //mailer para backups
 // import "./utils/backupDespachosMailer.js"  // para que cron lo ejecute
 import { enviarBackupDespachos } from "./utils/backupDespachosMailer.js";  // back up automatico desde Cron Job
+import { enviarBackupRecepciones } from "./utils/backupRecepcionMailer.js";
 // otros modulos
 import pdfRoutes from "./routes/pdfRoutes.js";
 import dataRoutes from "./routes/dataRoutes.js";
@@ -217,37 +218,25 @@ app.get("/api/meta", (req, res) => {
   });
 });
 //=======================================================================================
-// ================ End poitn para ejecutar tareas desde cron
-app.post("/api/backup/manual", async (req, res) => {
+// ================ End poitn para ejecutar tareas desde cron job
+app.post("/api/backup/logistica", async (req, res) => {
   try {
-    // 🔐 Seguridad básica
-    const auth = req.headers.authorization;
-
-    if (auth !== `Bearer ${process.env.CRON_SECRET}`) {
-      return res.status(401).json({
-        ok: false,
-        message: "No autorizado",
-      });
-    }
-
-    console.log("CRON EXTERNO: ejecutando backup...");
-
     await enviarBackupDespachos();
+    await enviarBackupRecepciones();
 
     res.json({
       ok: true,
-      message: "Backup ejecutado correctamente",
+      message: "Backups de logística ejecutados correctamente",
     });
-
   } catch (error) {
-    console.error("Error ejecutando backup manual:", error);
-
     res.status(500).json({
       ok: false,
-      message: "Error ejecutando backup",
+      message: "Error ejecutando backups de logística",
+      error: error.message,
     });
   }
 });
+
 //IA
 app.post("/api/gemini/message", async (req, res) => {
   const { message } = req.body;

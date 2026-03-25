@@ -62,3 +62,6 @@
 [25/3/2026 8:42:57] PUT /api/despacho-alcoholes/69bc01d4fdf7f6351f55743e | status=200 | rol=anonimo | email=anonimo
 [25/3/2026 8:43:19] PUT /api/despacho-alcoholes/69bc44ad24a193b87fce2f4b | status=200 | rol=anonimo | email=anonimo
 [25/3/2026 8:43:32] PUT /api/despacho-alcoholes/69bc47e924a193b87fce2f64 | status=200 | rol=anonimo | email=anonimo
+[25/3/2026 10:22:20] POST /api/backup/manual | status=401 | rol=anonimo | email=anonimo
+[25/3/2026 10:35:10] POST /api/backup/manual | status=200 | rol=anonimo | email=anonimo
+[25/3/2026 11:03:13] POST /api/backup/logistica | status=200 | rol=anonimo | email=anonimo
