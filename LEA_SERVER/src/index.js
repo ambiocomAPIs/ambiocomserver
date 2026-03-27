@@ -63,6 +63,8 @@ import usersRoutes from "./routes/Login/users.routes.js";
 // Captura de tráfico de peticiones HTTP
 import trafficLogger from "./middlewares/System/trafficLogger.js";
 import trafficRoutes from "./routes/System/traffic.routes.js";
+//modulo_DEv
+import TaskRequerimentDev from "./routes/Dev_Module/Task_RequerimentRoutes.js"
 //CONFIGS
 import configuraciones from "./config/config.js";
 
@@ -201,6 +203,8 @@ app.use("/api/auth", authRoutes);
 app.use("/api/users", usersRoutes);
 //Captura de trafico
 app.use("/api/system/traffic", trafficRoutes);
+//Modulo dev
+app.use("/api/taskrequerimentdev", TaskRequerimentDev);
 
 // ======= enpoint que verifica conexcion con el backend e internet (NO BORRAR) =========
 app.get("/api/health", (req, res) => {
