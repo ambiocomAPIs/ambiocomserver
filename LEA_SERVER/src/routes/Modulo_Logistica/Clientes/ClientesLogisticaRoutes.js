@@ -7,12 +7,27 @@ import {
   deleteCliente,
 } from "../../../controllers/Modulo_Logistica/Clientes/ClientesLogisticaController.js";
 
+import { requireAuth, requireRole } from "../../../middlewares/auth.middleware.js";
+
 const router = Router();
 
-router.get("/", getClientes);
-router.get("/:id", getClienteById);
-router.post("/", createCliente);
-router.put("/:id", updateCliente);
-router.delete("/:id", deleteCliente);
+router.get("/",requireAuth, requireRole("developer"), getClientes);
+router.get("/test", getClientes);
+// router.get(
+//   "/",
+//   requireAuth,
+//   requireRole("developer"),
+//   (req, res) => {
+//     return res.json({
+//       ok: true,
+//       message: "Sí pasó el middleware",
+//       user: req.user,
+//     });
+//   }
+// );
+router.get("/:id",requireAuth, getClienteById);
+router.post("/",requireAuth, createCliente);
+router.put("/:id",requireAuth, updateCliente);
+router.delete("/:id",requireAuth, deleteCliente);
 
 export default router;

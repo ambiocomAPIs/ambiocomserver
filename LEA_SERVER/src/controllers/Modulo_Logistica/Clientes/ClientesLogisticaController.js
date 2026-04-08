@@ -2,10 +2,12 @@ import Cliente from "../../../models/Modulo_Logistica/Clientes/ClientesLogistica
 
 // GET /api/clientes
 export const getClientes = async (req, res) => {
-  try {
+  try {    
     const clientes = await Cliente.find().sort({ createdAt: -1 });
     return res.json(clientes);
   } catch (error) {
+    // console.log("entro al catch con error:", error);
+    
     return res.status(500).json({
       message: "Error al obtener clientes",
       error: error.message,
