@@ -12,22 +12,9 @@ import { requireAuth, requireRole } from "../../../middlewares/auth.middleware.j
 const router = Router();
 
 router.get("/",requireAuth, requireRole("developer","liderlogistica","auxiliarlogistica1", "auxiliarlogistica2", "torrecontrollogistica"), getClientes);
-router.get("/test", getClientes);
-// router.get(
-//   "/",
-//   requireAuth,
-//   requireRole("developer"),
-//   (req, res) => {
-//     return res.json({
-//       ok: true,
-//       message: "Sí pasó el middleware",
-//       user: req.user,
-//     });
-//   }
-// );
-router.get("/:id",requireAuth, getClienteById);
-router.post("/",requireAuth, createCliente);
-router.put("/:id",requireAuth, updateCliente);
-router.delete("/:id",requireAuth, deleteCliente);
+router.get("/:id", getClienteById);
+router.post("/", createCliente);
+router.put("/:id", updateCliente);
+router.delete("/:id", deleteCliente);
 
 export default router;
