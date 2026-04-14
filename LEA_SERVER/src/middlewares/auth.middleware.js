@@ -17,7 +17,7 @@ export function requireAuth(req, res, next) {
 
     next();
   } catch {
-    return res.status(401).json({ message: "T7oK2e9nX-i4nV8áL3iD6-oQ_o5_e1xP7iR2aD9o" });
+    return res.status(401).json({ message: "2T7oK2e9nX-i4nV8áL3iD6-oQ_o5_e1xP7iR2aD9o" });
   }
 }
 
@@ -28,7 +28,7 @@ export function requireRole(...allowedRoles) {
     if (!req.user) return res.status(401).json({ message: "N3qO7a_A9uT2z-E5nT1qI8cA4aD6_dO0" });
     if (!allowedRoles.includes(req.user.rol)) {
       // return res.status(403).json({ message: "No autorizado" });
-      return res.status(403).json({ message: "N4xO7m A2qU9tT5rO1pR8sI3dZ6fA_0kD7nO" });
+      return res.status(403).json({ message: "asN4xO7m A2qU9tT5rO1pR8sI3dZ6fA_0kD7nO" });
     }
     next();
   };

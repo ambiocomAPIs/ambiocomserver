@@ -7,7 +7,7 @@ function cookieOptions() {
     httpOnly: true,
     secure: isProd,
     sameSite: isProd ? "none" : "lax",
-    maxAge: 24 * 60 * 60 * 1000,
+    maxAge: 15 * 60 * 1000, 
     path: "/",
   };
 }
@@ -28,7 +28,7 @@ export async function login(req, res) {
     if (!ok) return res.status(401).json({ message: "Credenciales inválidas" });
 
     const token = signToken({
-      sub: user._id.toString(),
+      // sub: user._id.toString(),
       email: user.email,
       rol: user.rol,
     });
@@ -37,7 +37,8 @@ export async function login(req, res) {
 
     return res.json({
       message: "Login OK",
-      user: { id: user._id, email: user.email, rol: user.rol },
+      // user: { id: user._id, email: user.email, rol: user.rol },
+      user: { email: user.email, rol: user.rol },
     });
   } catch (err) {
     return res.status(500).json({ message: "Error en login", error: err.message });

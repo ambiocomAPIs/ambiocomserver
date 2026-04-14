@@ -17,4 +17,5 @@ router.post("/",requireAuth, requireRole("developer","liderlogistica","auxiliarl
 router.put("/:id",requireAuth, requireRole("developer","liderlogistica","auxiliarlogistica1", "auxiliarlogistica2", "torrecontrollogistica"), updateCliente);
 router.delete("/:id",requireAuth, requireRole("developer","liderlogistica","auxiliarlogistica1", "auxiliarlogistica2", "torrecontrollogistica"), deleteCliente);
 
+
 export default router;
