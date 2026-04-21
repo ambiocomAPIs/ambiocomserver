@@ -10,7 +10,7 @@ import { requireAuth, requireRole } from "../../middlewares/auth.middleware.js";
 
 const router = express.Router();
 
-router.get("/",requireAuth, requireRole("developer","supervisor", "gerente","auxiliarlogistica2"), getTanques);
+router.get("/",requireAuth, requireRole("developer","supervisor", "gerente" ,"auxiliarlogistica2"), getTanques);
 router.post("/",requireAuth, requireRole("developer","supervisor", "gerente"), createTanque);
 router.put("/:id",requireAuth, requireRole("developer","supervisor", "gerente"), updateTanque);
 router.delete("/:id",requireAuth, requireRole("developer","supervisor", "gerente"), deleteTanque);
