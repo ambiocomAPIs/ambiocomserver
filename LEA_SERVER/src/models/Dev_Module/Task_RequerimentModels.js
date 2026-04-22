@@ -4,7 +4,7 @@ const TaskRequestSchema = new mongoose.Schema(
   {
     tipo: {
       type: String,
-      enum: ["Tarea", "Hallazgo", "Requerimiento", "Seguridad"],
+      enum: ["Tarea", "Hallazgo", "Requerimiento", "Seguridad", "Reportado"],
       default: "Tarea",
       required: true,
       trim: true,
