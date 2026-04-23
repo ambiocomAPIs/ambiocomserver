@@ -65,6 +65,8 @@ import trafficLogger from "./middlewares/System/trafficLogger.js";
 import trafficRoutes from "./routes/System/traffic.routes.js";
 //modulo_DEv
 import TaskRequerimentDev from "./routes/Dev_Module/Task_RequerimentRoutes.js"
+// Componente Tutoriales
+import tutorialModalList from "./routes/ModalTutorialList/tutorialModalList.routes.js"
 //CONFIGS
 import configuraciones from "./config/config.js";
 
@@ -201,6 +203,8 @@ app.use("/api/programaciondespacho", ProgramacionDespacho);
 //autenticacion y login
 app.use("/api/auth", authRoutes);
 app.use("/api/users", usersRoutes);
+//modal tutorial list
+app.use("/api/tutoriallist/tutorial", tutorialModalList);
 //Captura de trafico
 app.use("/api/system/traffic", trafficRoutes);
 //Modulo dev
