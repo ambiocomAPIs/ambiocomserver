@@ -28,6 +28,11 @@ const conductorSchema = new mongoose.Schema(
       required: true,
       trim: true,
     },
+    contacto: {
+      type: String,
+      trim: true,
+      default: "",
+    },
   },
   { timestamps: true }
 );
