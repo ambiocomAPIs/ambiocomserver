@@ -19,7 +19,7 @@ const upload = multer({ storage: multer.memoryStorage() });
 //  CREAR
 router.post("/", requireAuth, requireRole("developer","liderlogistica","laboratorio","gerente","supervisor","auxiliarlogistica1","auxiliarlogistica2", "torrecontrollogistica"),crearRecepcionAlcohol);
 //  LISTAR (ESTA ERA LA QUE FALTABA)
-router.get("/", requireAuth, requireRole("developer","liderlogistica","laboratorio","gerente","supervisor","auxiliarlogistica1","auxiliarlogistica2", "torrecontrollogistica"),obtenerRecepcionAlcohol);
+router.get("/", requireAuth, requireRole("developer","liderlogistica","laboratorio","gerente","supervisor","auxiliarlogistica1","auxiliarlogistica2", "torrecontrollogistica", "comercial"),obtenerRecepcionAlcohol);
 // PLANTILLA
 router.get("/plantilla-excel", requireAuth, requireRole("developer","liderlogistica","laboratorio","gerente","supervisor","auxiliarlogistica1","auxiliarlogistica2", "torrecontrollogistica"),descargaPlantillaExcel);
 // CARGA MASIVA

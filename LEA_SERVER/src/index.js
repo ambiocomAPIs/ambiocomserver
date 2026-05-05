@@ -57,6 +57,8 @@ import ColaboradoresLogistica from "./routes/Modulo_Logistica/Colaboradores/Cola
 import ClientesLogistica from "./routes/Modulo_Logistica/Clientes/ClientesLogisticaRoutes.js"
 import TransportadorasLogistica from "./routes/Modulo_Logistica/Transportadoras/TransportadoraLogisticaRoutes.js"
 import ProgramacionDespacho from "./routes/Modulo_Logistica/ProgramacionDespacho/programacionDespacho.routes.js"
+//PTAP
+import regeneracionResinaRoutes from "./routes/PTAP/regeneracionResina.routes.js";
 //autenticacion y login
 import authRoutes from "./routes/Login/auth.routes.js";
 import usersRoutes from "./routes/Login/users.routes.js";
@@ -200,6 +202,8 @@ app.use("/api/personal", ColaboradoresLogistica);
 app.use("/api/clienteslogistica", ClientesLogistica);
 app.use("/api/transportadoraslogistica", TransportadorasLogistica);
 app.use("/api/programaciondespacho", ProgramacionDespacho);
+//PTAP
+app.use("/api/regeneraciones-resinas", regeneracionResinaRoutes);
 //autenticacion y login
 app.use("/api/auth", authRoutes);
 app.use("/api/users", usersRoutes);

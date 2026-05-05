@@ -13,10 +13,10 @@ import { requireAuth, requireRole } from "../../../middlewares/auth.middleware.j
 
 const router = Router();
 
-router.get("/rango", requireAuth, requireRole("developer","liderlogistica","laboratorio","gerente","supervisor","auxiliarlogistica2", "torrecontrollogistica"), getProgramacionesByRango);
+router.get("/rango", requireAuth, requireRole("developer","liderlogistica","laboratorio","gerente","supervisor","auxiliarlogistica2", "torrecontrollogistica", "comercial"), getProgramacionesByRango);
 
 // CRUD
-router.get("/",requireAuth, requireRole("developer","liderlogistica","laboratorio","gerente","supervisor","auxiliarlogistica1","auxiliarlogistica2", "torrecontrollogistica"), getProgramaciones);
+router.get("/",requireAuth, requireRole("developer","liderlogistica","laboratorio","gerente","supervisor","auxiliarlogistica1","auxiliarlogistica2", "torrecontrollogistica", "comercial"), getProgramaciones);
 router.get("/:id", requireAuth, requireRole("developer","liderlogistica","laboratorio","gerente","supervisor","auxiliarlogistica2", "torrecontrollogistica"), getProgramacionById);
 router.post("/", requireAuth, requireRole("developer","liderlogistica","laboratorio","gerente","supervisor","auxiliarlogistica2", "torrecontrollogistica"), createProgramacion);
 router.put("/:id", requireAuth, requireRole("developer","liderlogistica","laboratorio","gerente","supervisor","auxiliarlogistica2", "torrecontrollogistica"), updateProgramacion);

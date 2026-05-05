@@ -17,11 +17,11 @@ const router = Router();
 const upload = multer({ storage: multer.memoryStorage() });
 
 //obtener data en rango de fechas
-router.get("/rango",requireAuth, requireRole("developer","liderlogistica","laboratorio","gerente","supervisor","auxiliarlogistica1","auxiliarlogistica2", "torrecontrollogistica"), obtenerDespachoAlcoholByRango);
+router.get("/rango",requireAuth, requireRole("developer","liderlogistica","laboratorio","gerente","supervisor","auxiliarlogistica1","auxiliarlogistica2", "torrecontrollogistica", "comercial"), obtenerDespachoAlcoholByRango);
 // CREAR
 router.post("/", requireAuth, requireRole("developer","liderlogistica","laboratorio","gerente","supervisor","auxiliarlogistica1","auxiliarlogistica2", "torrecontrollogistica"),crearDespachoAlcohol);
 // LISTAR (ESTA ERA LA QUE FALTABA)
-router.get("/",requireAuth, requireRole("developer","liderlogistica","laboratorio","gerente","supervisor","auxiliarlogistica1","auxiliarlogistica2", "torrecontrollogistica"), obtenerDespachoAlcohol);
+router.get("/",requireAuth, requireRole("developer","liderlogistica","laboratorio","gerente","supervisor","auxiliarlogistica1","auxiliarlogistica2", "torrecontrollogistica", "comercial"), obtenerDespachoAlcohol);
 // PLANTILLA
 router.get("/plantilla-excel",requireAuth, requireRole("developer","liderlogistica","laboratorio","gerente","supervisor","auxiliarlogistica1","auxiliarlogistica2", "torrecontrollogistica"), descargaPlantillaExcel);
 // CARGA MASIVA
