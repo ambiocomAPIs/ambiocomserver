@@ -85,6 +85,7 @@ export const getProgramaciones = async (req, res) => {
       const re = new RegExp(text.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "i");
       filter.$or = [
         { fecha: re },
+        { horaProgramada: re },
         { placa: re },
         { trailer: re },
         { conductor: re },
@@ -154,6 +155,7 @@ export const getProgramacionesByRango = async (req, res) => {
       const re = new RegExp(text.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "i");
       filter.$or = [
         { fecha: re },
+        { horaProgramada: re },
         { placa: re },
         { trailer: re },
         { conductor: re },
@@ -197,6 +199,7 @@ export const createProgramacion = async (req, res) => {
 
     const payload = {
       fecha: normalizeText(req.body.fecha),
+      horaProgramada: normalizeText(req.body.horaProgramada),
       placa: normalizeText(req.body.placa),
       trailer: normalizeText(req.body.trailer),
       conductor: normalizeText(req.body.conductor),
@@ -234,6 +237,7 @@ export const updateProgramacion = async (req, res) => {
 
     const payload = {
       fecha: normalizeText(req.body.fecha),
+      horaProgramada: normalizeText(req.body.horaProgramada),
       placa: normalizeText(req.body.placa),
       trailer: normalizeText(req.body.trailer),
       conductor: normalizeText(req.body.conductor),

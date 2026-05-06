@@ -10,7 +10,11 @@ const ProgramacionDespachoSchema = new mongoose.Schema(
       trim: true,
       match: [ISO_DATE_REGEX, 'La fecha debe tener formato "YYYY-MM-DD".'],
     },
-
+    horaProgramada: {
+      type: String,
+      trim: true,
+      default: "",
+    },
     placa: {
       type: String,
       trim: true,

@@ -555,3 +555,14 @@
 [5/5/2026 11:54:29] POST /api/auth/login | status=200 | rol=anonimo | email=anonimo
 [5/5/2026 12:08:32] PUT /api/conductores/69f8850f5013c5eafd1bd98e | status=200 | rol=anonimo | email=anonimo
 [5/5/2026 12:08:47] PUT /api/conductores/69f8850f5013c5eafd1bd98e | status=200 | rol=anonimo | email=anonimo
+[5/5/2026 14:00:49] POST /api/seed-users | status=200 | rol=anonimo | email=anonimo
+[5/5/2026 14:20:06] POST /api/auth/logout | status=200 | rol=anonimo | email=anonimo
+[5/5/2026 14:44:30] POST /api/auth/login | status=200 | rol=anonimo | email=anonimo
+[5/5/2026 15:06:41] PUT /api/programaciondespacho/69f804c32fbaec7b3a883c01 | status=200 | rol=developer | email=desarrolladores.ambiocom@ambiocom.com
+[5/5/2026 15:58:33] POST /api/auth/logout | status=200 | rol=anonimo | email=anonimo
+[6/5/2026 7:45:14] POST /api/auth/login | status=200 | rol=anonimo | email=anonimo
+[6/5/2026 9:24:14] POST /api/auth/logout | status=200 | rol=anonimo | email=anonimo
+[6/5/2026 9:26:56] POST /api/auth/login | status=200 | rol=anonimo | email=anonimo
+[6/5/2026 10:33:22] POST /api/auth/logout | status=200 | rol=anonimo | email=anonimo
+[6/5/2026 10:33:43] POST /api/auth/login | status=401 | rol=anonimo | email=anonimo
+[6/5/2026 10:33:57] POST /api/auth/login | status=200 | rol=anonimo | email=anonimo
