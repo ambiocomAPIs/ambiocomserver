@@ -39,7 +39,40 @@ export const crearMedicionAgua = async (req, res) => {
 /* ================= LISTAR ================= */
 export const obtenerMedicionesAgua = async (req, res) => {
   try {
-    const mediciones = await MedidoresAgua.find().sort({
+    const { desde, hasta } = req.query;
+
+    const filtro = {};
+
+    if (desde && hasta) {
+      filtro.$expr = {
+        $and: [
+          {
+            $gte: [
+              {
+                $dateFromString: {
+                  dateString: "$fecha",
+                  format: "%d-%m-%Y",
+                },
+              },
+              new Date(`${desde}T00:00:00.000Z`),
+            ],
+          },
+          {
+            $lte: [
+              {
+                $dateFromString: {
+                  dateString: "$fecha",
+                  format: "%d-%m-%Y",
+                },
+              },
+              new Date(`${hasta}T23:59:59.999Z`),
+            ],
+          },
+        ],
+      };
+    }
+
+    const mediciones = await MedidoresAgua.find(filtro).sort({
       createdAt: 1,
     });
 
