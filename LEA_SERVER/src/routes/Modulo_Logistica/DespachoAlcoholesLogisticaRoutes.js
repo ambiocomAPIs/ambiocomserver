@@ -8,7 +8,8 @@ import {
   eliminarDespachoAlcohol,
   cargarDespachoAlcoholDesdeExcel,
   descargaPlantillaExcel,
-  obtenerDespachoAlcoholByRango
+  obtenerDespachoAlcoholByRango,
+  actualizarEstadoVehiculoDespachoAlcohol
 } from "../../controllers/Modulo_Logistica/DespachoAlcoholesLogisticaController.js";
 
 import { requireAuth, requireRole } from "../../middlewares/auth.middleware.js";
@@ -16,6 +17,7 @@ import { requireAuth, requireRole } from "../../middlewares/auth.middleware.js";
 const router = Router();
 const upload = multer({ storage: multer.memoryStorage() });
 
+router.patch("/:id/estado",requireAuth, requireRole("developer","liderlogistica","laboratorio","gerente","supervisor","auxiliarlogistica1","auxiliarlogistica2", "torrecontrollogistica"), actualizarEstadoVehiculoDespachoAlcohol);
 //obtener data en rango de fechas
 router.get("/rango",requireAuth, requireRole("developer","liderlogistica","laboratorio","gerente","supervisor","auxiliarlogistica1","auxiliarlogistica2", "torrecontrollogistica", "comercial"), obtenerDespachoAlcoholByRango);
 // CREAR

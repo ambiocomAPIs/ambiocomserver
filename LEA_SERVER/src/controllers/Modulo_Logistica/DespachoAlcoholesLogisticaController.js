@@ -75,8 +75,44 @@ export const obtenerDespachoAlcohol = async (req, res) => {
   }
 };
 
+/* ================= ACTUALIZAR SOLO ESTADO VEHÍCULO ================= */
+export const actualizarEstadoVehiculoDespachoAlcohol = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { vehiculo_rechazado } = req.body;
+
+    if (!vehiculo_rechazado) {
+      return res.status(400).json({
+        message: "El estado del vehículo es obligatorio",
+      });
+    }
+
+    const medicionActualizada = await ModelDespachoAlcohol.findByIdAndUpdate(
+      id,
+      {
+        $set: {
+          "lecturas.vehiculo_rechazado": vehiculo_rechazado,
+        },
+      },
+      { new: true }
+    );
+
+    if (!medicionActualizada) {
+      return res.status(404).json({
+        message: "Despacho no encontrado",
+      });
+    }
+
+    res.json(medicionActualizada);
+  } catch (error) {
+    res.status(500).json({
+      message: "Error al actualizar estado del vehículo",
+      error: error.message,
+    });
+  }
+};
+
 /* =======================================================
-   ✅ NUEVO ENDPOINT
    GET /api/despacho-alcoholes/rango?from=YYYY-MM-DD&to=YYYY-MM-DD
    - rango incluyente sobre "fecha" tipo STRING (YYYY-MM-DD)
    - (Opcional) soporta q para buscar dentro de lecturas/responsable/observaciones si quieres
