@@ -59,6 +59,7 @@ import TransportadorasLogistica from "./routes/Modulo_Logistica/Transportadoras/
 import ProgramacionDespacho from "./routes/Modulo_Logistica/ProgramacionDespacho/programacionDespacho.routes.js"
 //Laboratorio
 import aguaAnalisisRoutes from "./routes/ModuloLaboratorio/LAB_FO_XX_aguaAnalisis.routes.js";
+import registroregeneracionresinas from "./routes/ModuloLaboratorio/RegistroRegeneracionResinasroutes.js"
 //PTAP
 import regeneracionResinaRoutes from "./routes/PTAP/regeneracionResina.routes.js";
 //autenticacion y login
@@ -206,6 +207,7 @@ app.use("/api/transportadoraslogistica", TransportadorasLogistica);
 app.use("/api/programaciondespacho", ProgramacionDespacho);
 //Laboratorio
 app.use("/api/agua-analisis", aguaAnalisisRoutes);
+app.use("/regeneracionresinas/api/analisis-agua", registroregeneracionresinas);
 //PTAP
 app.use("/api/regeneraciones-resinas", regeneracionResinaRoutes);
 //autenticacion y login
