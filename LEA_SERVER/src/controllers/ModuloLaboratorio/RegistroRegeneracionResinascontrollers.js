@@ -2,7 +2,7 @@ import AnalisisAgua from "../../models/ModuloLaboratorio/RegistroRegeneracionRes
 
 export const createAnalisisAgua = async (req, res) => {
     try {
-        const { fechaRegistro, rows } = req.body;
+        const { fechaRegistro, observaciones = "", rows } = req.body;
 
         if (!fechaRegistro) {
             return res.status(400).json({
@@ -18,20 +18,22 @@ export const createAnalisisAgua = async (req, res) => {
             });
         }
 
-        const exists = await AnalisisAgua.findOne({
-            fechaRegistro,
-        });
+        // solo permite un registro por fecha
+        // const exists = await AnalisisAgua.findOne({
+        //     fechaRegistro,
+        // });
 
-        if (exists) {
-            return res.status(409).json({
-                ok: false,
-                message: "Ya existe un registro para esta fecha.",
-                data: exists,
-            });
-        }
+        // if (exists) {
+        //     return res.status(409).json({
+        //         ok: false,
+        //         message: "Ya existe un registro para esta fecha.",
+        //         data: exists,
+        //     });
+        // }
 
         const data = await AnalisisAgua.create({
             fechaRegistro,
+            observaciones,
             rows,
         });
 
@@ -72,7 +74,7 @@ export const getFechasAnalisisAgua = async (req, res) => {
 export const updateAnalisisAgua = async (req, res) => {
     try {
         const { id } = req.params;
-        const { fechaRegistro, rows } = req.body;
+        const { fechaRegistro, observaciones, rows } = req.body;
 
         if (!Array.isArray(rows)) {
             return res.status(400).json({
@@ -85,6 +87,7 @@ export const updateAnalisisAgua = async (req, res) => {
             id,
             {
                 fechaRegistro,
+                observaciones,
                 rows,
             },
             {
@@ -125,23 +128,22 @@ export const getAnalisisAguaByDate = async (req, res) => {
             });
         }
 
-        const data = await AnalisisAgua.findOne({
+        const data = await AnalisisAgua.find({
             fechaRegistro: fecha,
-        });
+        }).sort({ createdAt: 1 });
 
         return res.json({
             ok: true,
-            message: data
-                ? "Registro encontrado."
-                : "No hay registro para esta fecha.",
+            total: data.length,
+            message: data.length
+                ? "Registros encontrados."
+                : "No hay registros para esta fecha.",
             data,
         });
     } catch (error) {
         return res.status(500).json({
             ok: false,
-            message:
-                error.message ||
-                "Error al consultar por fecha.",
+            message: error.message || "Error al consultar por fecha.",
         });
     }
 };

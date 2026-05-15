@@ -8,6 +8,12 @@ const AnalisisAguaRegistroRegeneracionResinasAguaSchema = new mongoose.Schema(
       index: true,
     },
 
+    observaciones: {
+      type: String,
+      default: "",
+      trim: true,
+    },
+
     rows: {
       type: Array,
       required: true,
@@ -19,6 +25,9 @@ const AnalisisAguaRegistroRegeneracionResinasAguaSchema = new mongoose.Schema(
   }
 );
 
-const AnalisisAgua = mongoose.model( "AnalisisAguaRegistroRegeneracionResinas", AnalisisAguaRegistroRegeneracionResinasAguaSchema);
+const AnalisisAgua = mongoose.model(
+  "AnalisisAguaRegistroRegeneracionResinas",
+  AnalisisAguaRegistroRegeneracionResinasAguaSchema
+);
 
 export default AnalisisAgua;
