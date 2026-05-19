@@ -60,6 +60,10 @@ import ProgramacionDespacho from "./routes/Modulo_Logistica/ProgramacionDespacho
 //Laboratorio
 import aguaAnalisisRoutes from "./routes/ModuloLaboratorio/LAB_FO_XX_aguaAnalisis.routes.js";
 import registroregeneracionresinas from "./routes/ModuloLaboratorio/RegistroRegeneracionResinasroutes.js"
+import trazabilidadloteproduccionLaboratorioRoutes from "./routes/ModuloLaboratorio/TrazabilidadLoteDeProduccionroutes.js";
+import controlCalidadProcesoDestileriaRoutes from "./routes/ModuloLaboratorio/ControlCalidadProcesoDestileriaRoutes.js";
+import trazabilidadRegistroLoteProduccionRoutes from "./routes/ModuloLaboratorio/TrazabilidadRegistroDeLotesDeProduccionroute.js";
+
 //PTAP
 import regeneracionResinaRoutes from "./routes/PTAP/regeneracionResina.routes.js";
 //autenticacion y login
@@ -208,6 +212,9 @@ app.use("/api/programaciondespacho", ProgramacionDespacho);
 //Laboratorio
 app.use("/api/agua-analisis", aguaAnalisisRoutes);
 app.use("/regeneracionresinas/api/analisis-agua", registroregeneracionresinas);
+app.use("/api/trazabilidadloteproduccionlaboratorio", trazabilidadloteproduccionLaboratorioRoutes);
+app.use("/api/trazabilidad-laboratorio-control-proceso",controlCalidadProcesoDestileriaRoutes);
+app.use("/api/trazabilidad-laboratorio-lote-produccion",trazabilidadRegistroLoteProduccionRoutes);
 //PTAP
 app.use("/api/regeneraciones-resinas", regeneracionResinaRoutes);
 //autenticacion y login
