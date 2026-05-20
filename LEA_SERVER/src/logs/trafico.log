@@ -720,3 +720,6 @@
 [19/5/2026 15:41:36] POST /api/trazabilidad-laboratorio-lote-produccion | status=201 | rol=anonimo | email=anonimo
 [19/5/2026 15:41:42] POST /api/trazabilidad-laboratorio-lote-produccion | status=201 | rol=anonimo | email=anonimo
 [19/5/2026 15:41:51] POST /api/trazabilidad-laboratorio-lote-produccion | status=201 | rol=anonimo | email=anonimo
+[19/5/2026 15:55:16] POST /api/auth/logout | status=200 | rol=anonimo | email=anonimo
+[19/5/2026 15:55:29] POST /api/auth/login | status=200 | rol=anonimo | email=anonimo
+[20/5/2026 7:42:32] POST /api/auth/login | status=200 | rol=anonimo | email=anonimo
