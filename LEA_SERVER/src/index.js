@@ -78,6 +78,8 @@ import TaskRequerimentDev from "./routes/Dev_Module/Task_RequerimentRoutes.js"
 import tutorialModalList from "./routes/ModalTutorialList/tutorialModalList.routes.js"
 //CONFIGS
 import configuraciones from "./config/config.js";
+//SCADA
+import Niveltanquesscada from "./routes/SCADA/Niveltanquesscada.routes.js";
 
 dotenv.config();
 
@@ -226,6 +228,8 @@ app.use("/api/tutoriallist/tutorial", tutorialModalList);
 app.use("/api/system/traffic", trafficRoutes);
 //Modulo dev
 app.use("/api/taskrequerimentdev", TaskRequerimentDev);
+// SCADA
+app.use("/api/scada/nivelesaveva", Niveltanquesscada);
 
 // ======= enpoint que verifica conexcion con el backend e internet (NO BORRAR) =========
 app.get("/api/health", (req, res) => {
