@@ -74,6 +74,8 @@ import trafficLogger from "./middlewares/System/trafficLogger.js";
 import trafficRoutes from "./routes/System/traffic.routes.js";
 //modulo_DEv
 import TaskRequerimentDev from "./routes/Dev_Module/Task_RequerimentRoutes.js"
+import RiceRoutes from "./routes/RICE/rice.routes.js"
+
 // Componente Tutoriales
 import tutorialModalList from "./routes/ModalTutorialList/tutorialModalList.routes.js"
 //CONFIGS
@@ -228,6 +230,7 @@ app.use("/api/tutoriallist/tutorial", tutorialModalList);
 app.use("/api/system/traffic", trafficRoutes);
 //Modulo dev
 app.use("/api/taskrequerimentdev", TaskRequerimentDev);
+app.use("/api/ricekanban", RiceRoutes);
 // SCADA
 app.use("/api/scada/nivelesaveva", Niveltanquesscada);
 
