@@ -17,6 +17,11 @@ import { requireExcelApiKey} from "../../middlewares/excelApiKey.middleware.js";
 const router = Router();
 const upload = multer({ storage: multer.memoryStorage() });
 
+router.get(
+  "/excel",
+  requireExcelApiKey,
+  obtenerRecepcionAlcoholExcel
+);
 
 //  CREAR
 router.post("/", requireAuth, requireRole("developer","liderlogistica","laboratorio","gerente","supervisor","auxiliarlogistica1","auxiliarlogistica2", "torrecontrollogistica"),crearRecepcionAlcohol);
@@ -31,10 +36,6 @@ router.get("/:id", requireAuth, requireRole("developer","liderlogistica","labora
 router.put("/:id",requireAuth, requireRole("developer","liderlogistica","laboratorio","gerente","supervisor","auxiliarlogistica1","auxiliarlogistica2", "torrecontrollogistica"), actualizarRecepcionAlcohol);
 router.delete("/:id", requireAuth, requireRole("developer","liderlogistica","laboratorio","gerente","supervisor","auxiliarlogistica1","auxiliarlogistica2", "torrecontrollogistica"),eliminarRecepcionAlcohol);
 
-router.get(
-  "/excel",
-  requireExcelApiKey,
-  obtenerRecepcionAlcoholExcel
-);
+
 
 export default router;
