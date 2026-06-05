@@ -8,7 +8,9 @@ export const requireExcelApiKey = (req, res, next) => {
       });
     }
 
-    if (apiKey !== process.env.EXCEL_API_KEY) {
+
+    // if (apiKey !== process.env.EXCEL_API_KEY) {
+    if (apiKey !== "PMIbD0AdyLzS_FLuEdsQ0BwdHLIA8EZue4AGw3SDavW7CdiiklhVrB4pph26hc1E") {
       return res.status(403).json({
         message: "API Key inválida",
       });
