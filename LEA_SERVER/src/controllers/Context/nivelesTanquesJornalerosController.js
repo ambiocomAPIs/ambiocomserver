@@ -164,6 +164,107 @@ export const cargarExcelNivelesTanquesJornaleros = async (req, res) => {
   }
 };
 
+// GET - Obtener registros por FechaRegistro (yyyy-mm-dd)
+export const obtenerNivelesPorFecha = async (req, res) => {
+  try {
+    const { fecha } = req.params;
+
+    // Validar formato yyyy-mm-dd
+    const datePattern = /^\d{4}-\d{2}-\d{2}$/;
+    if (!datePattern.test(fecha)) {
+      return res
+        .status(400)
+        .json({ message: "La fecha debe estar en formato YYYY-MM-DD" });
+    }
+
+    const registros = await NivelDiarioJornalerosLogistica
+      .find({ FechaRegistro: fecha })
+      .sort({ NombreTanque: 1 }); // opcional: orden A-Z
+
+    if (!registros || registros.length === 0) {
+      return res.status(200).json([]); // 👈 importante: devuelve array vacío
+    }
+
+    res.status(200).json(registros);
+  } catch (error) {
+    console.error("❌ Error al consultar por fecha:", error);
+    res.status(500).json({ message: "Error al consultar por fecha", error });
+  }
+};
+
+
+// GET - Obtener niveles para Excel mediante API Key
+export const obtenerNivelesExcel = async (req, res) => {
+  try {
+    const {
+      fechaDesde,
+      fechaHasta,
+      tanque,
+      limite = 10000,
+    } = req.query;
+
+    const filtro = {};
+
+    // Filtrar por rango de fechas
+    if (fechaDesde || fechaHasta) {
+      filtro.FechaRegistro = {};
+
+      if (fechaDesde) {
+        filtro.FechaRegistro.$gte = fechaDesde;
+      }
+
+      if (fechaHasta) {
+        filtro.FechaRegistro.$lte = fechaHasta;
+      }
+    }
+
+    // Filtrar por tanque
+    if (tanque) {
+      filtro.NombreTanque = tanque;
+    }
+
+    const limiteSeguro = Math.min(
+      Math.max(Number(limite) || 10000, 1),
+      50000
+    );
+
+    const niveles = await NivelDiarioJornalerosLogistica
+      .find(filtro)
+      .sort({
+        FechaRegistro: -1,
+        NombreTanque: 1,
+      })
+      .limit(limiteSeguro)
+      .lean();
+
+    // Eliminar campos internos de MongoDB
+    const datosExcel = niveles.map((registro) => {
+      const {
+        _id,
+        __v,
+        ...datos
+      } = registro;
+
+      return datos;
+    });
+
+    return res.status(200).json({
+      success: true,
+      total: datosExcel.length,
+      data: datosExcel,
+    });
+  } catch (error) {
+    console.error("Error obteniendo niveles para Excel:", error);
+
+    return res.status(500).json({
+      success: false,
+      message: "Error al obtener niveles para Excel",
+      error: error.message,
+    });
+  }
+};
+
+
 // DELETE - Eliminar registros por FechaRegistro
 export const eliminarPorFechaRegistro = async (req, res) => {
   const { FechaRegistro } = req.body; 
@@ -200,33 +301,6 @@ export const eliminarPorFechaRegistro = async (req, res) => {
   }
 };
 
-// GET - Obtener registros por FechaRegistro (yyyy-mm-dd)
-export const obtenerNivelesPorFecha = async (req, res) => {
-  try {
-    const { fecha } = req.params;
-
-    // Validar formato yyyy-mm-dd
-    const datePattern = /^\d{4}-\d{2}-\d{2}$/;
-    if (!datePattern.test(fecha)) {
-      return res
-        .status(400)
-        .json({ message: "La fecha debe estar en formato YYYY-MM-DD" });
-    }
-
-    const registros = await NivelDiarioJornalerosLogistica
-      .find({ FechaRegistro: fecha })
-      .sort({ NombreTanque: 1 }); // opcional: orden A-Z
-
-    if (!registros || registros.length === 0) {
-      return res.status(200).json([]); // 👈 importante: devuelve array vacío
-    }
-
-    res.status(200).json(registros);
-  } catch (error) {
-    console.error("❌ Error al consultar por fecha:", error);
-    res.status(500).json({ message: "Error al consultar por fecha", error });
-  }
-};
 
 // PUT - Actualizar registros por FechaRegistro (reemplaza todos los de esa fecha)
 export const actualizarNivelesPorFecha = async (req, res) => {

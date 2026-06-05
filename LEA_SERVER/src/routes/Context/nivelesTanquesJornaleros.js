@@ -2,11 +2,18 @@ import express from 'express';
 import fileUpload from 'express-fileupload';
 
 import { obtenerNiveles, crearNivel,cargarExcelNivelesTanquesJornaleros,eliminarPorFechaRegistro, 
-    actualizarNivelesPorFecha, obtenerNivelesPorFecha } from '../../controllers/Context/nivelesTanquesJornalerosController.js';
+    actualizarNivelesPorFecha, obtenerNivelesPorFecha, obtenerNivelesExcel } from '../../controllers/Context/nivelesTanquesJornalerosController.js';
 
 import { requireAuth, requireRole } from "../../middlewares/auth.middleware.js";
+import { requireExcelApiKey } from "../../middlewares/excelApiKey.middleware.js";
 
 const router = express.Router();
+
+router.get(
+  "/excel",
+  requireExcelApiKey,
+  obtenerNivelesExcel
+);
 
 router.get('/nivelesdiariostanquesjornaleros',requireAuth,requireRole("developer", "supervisor", "gerente", "comercial"), obtenerNiveles);
 router.post('/nivelesdiariostanquesjornaleros', requireAuth,requireRole("developer", "supervisor", "gerente"), crearNivel);

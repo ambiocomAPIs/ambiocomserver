@@ -31,40 +31,6 @@ export const createTanque = async (req, res) => {
   }
 };
 
-// Obtener tanques para Excel mediante API Key
-export const getTanquesExcel = async (req, res) => {
-  try {
-    const tanques = await Tanques.find()
-      .sort({ NombreTanque: 1 })
-      .lean();
-
-    // Eliminar campos internos de MongoDB antes de enviarlos a Excel
-    const datosExcel = tanques.map((tanque) => {
-      const {
-        _id,
-        __v,
-        ...datos
-      } = tanque;
-
-      return datos;
-    });
-
-    return res.status(200).json({
-      success: true,
-      total: datosExcel.length,
-      data: datosExcel,
-    });
-  } catch (error) {
-    console.error("Error obteniendo tanques para Excel:", error);
-
-    return res.status(500).json({
-      success: false,
-      message: "Error al obtener tanques para Excel",
-      error: error.message,
-    });
-  }
-};
-
 // Actualizar un tanque existente
 export const updateTanque = async (req, res) => {
   try {
