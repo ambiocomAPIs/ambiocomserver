@@ -23,6 +23,7 @@ router.get(
   obtenerRecepcionAlcoholExcel
 );
 
+
 //  CREAR
 router.post("/", requireAuth, requireRole("developer","liderlogistica","laboratorio","gerente","supervisor","auxiliarlogistica1","auxiliarlogistica2", "torrecontrollogistica"),crearRecepcionAlcohol);
 //  LISTAR (ESTA ERA LA QUE FALTABA)
@@ -35,7 +36,6 @@ router.post("/carga-masiva", requireAuth,requireRole("developer","liderlogistica
 router.get("/:id", requireAuth, requireRole("developer","liderlogistica","laboratorio","gerente","supervisor","auxiliarlogistica1","auxiliarlogistica2", "torrecontrollogistica"),obtenerRecepcionAlcoholPorId);
 router.put("/:id",requireAuth, requireRole("developer","liderlogistica","laboratorio","gerente","supervisor","auxiliarlogistica1","auxiliarlogistica2", "torrecontrollogistica"), actualizarRecepcionAlcohol);
 router.delete("/:id", requireAuth, requireRole("developer","liderlogistica","laboratorio","gerente","supervisor","auxiliarlogistica1","auxiliarlogistica2", "torrecontrollogistica"),eliminarRecepcionAlcohol);
-
 
 
 export default router;
