@@ -8,7 +8,7 @@ const CAMPOS_FIJOS = ["fecha", "responsable", "observaciones"];
 /* ================= CREAR ================= */
 export const crearRecepcionAlcohol = async (req, res) => {
   console.log("respuesta que llega:", req.body);
-  
+
   try {
     const {
       fecha,
@@ -16,7 +16,7 @@ export const crearRecepcionAlcohol = async (req, res) => {
       observaciones,
       lecturas,
     } = req.body;
-    
+
 
     if (!fecha || !responsable || !lecturas) {
       return res.status(400).json({
@@ -53,6 +53,89 @@ export const obtenerRecepcionAlcohol = async (req, res) => {
   } catch (error) {
     res.status(500).json({
       message: "Error al obtener los ingresos de carbon y madera",
+      error: error.message,
+    });
+  }
+};
+
+/* ================= LISTAR PARA EXCEL ================= */
+export const obtenerRecepcionAlcoholExcel = async (req, res) => {
+  try {
+    const {
+      fechaDesde,
+      fechaHasta,
+      limite = 5000,
+    } = req.query;
+
+    const filtro = {};
+
+    /* ===== Filtro opcional por fechas ===== */
+    if (fechaDesde || fechaHasta) {
+      filtro.fecha = {};
+
+      if (fechaDesde) {
+        filtro.fecha.$gte = fechaDesde;
+      }
+
+      if (fechaHasta) {
+        filtro.fecha.$lte = fechaHasta;
+      }
+    }
+
+    const limiteSeguro = Math.min(
+      Math.max(Number(limite) || 5000, 1),
+      20000
+    );
+
+    const registros = await ModelRecepcionAlcohol
+      .find(filtro)
+      .sort({ fecha: 1, createdAt: 1 })
+      .limit(limiteSeguro)
+      .lean();
+
+    /*
+      Convertimos lecturas en columnas planas.
+
+      Antes:
+      {
+        fecha: "2026-06-05",
+        lecturas: {
+          proveedor: "URBASER",
+          tipoCombustible: "Madera"
+        }
+      }
+
+      Después:
+      {
+        fecha: "2026-06-05",
+        proveedor: "URBASER",
+        tipoCombustible: "Madera"
+      }
+    */
+    const datosExcel = registros.map((registro) => {
+      const {
+        lecturas = {},
+        __v,
+        ...camposPrincipales
+      } = registro;
+
+      return {
+        ...camposPrincipales,
+        ...lecturas,
+      };
+    });
+
+    return res.status(200).json({
+      success: true,
+      total: datosExcel.length,
+      data: datosExcel,
+    });
+  } catch (error) {
+    console.error("Error obteniendo datos para Excel:", error);
+
+    return res.status(500).json({
+      success: false,
+      message: "Error obteniendo datos para Excel",
       error: error.message,
     });
   }

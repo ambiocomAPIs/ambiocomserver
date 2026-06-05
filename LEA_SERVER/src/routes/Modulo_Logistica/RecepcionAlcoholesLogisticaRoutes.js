@@ -7,10 +7,12 @@ import {
   actualizarRecepcionAlcohol,
   eliminarRecepcionAlcohol,
   cargarRecepcionAlcoholDesdeExcel,
-  descargaPlantillaExcel
+  descargaPlantillaExcel,
+  obtenerRecepcionAlcoholExcel
 } from "../../controllers/Modulo_Logistica/RecepcionAlcoholesLogisticaController.js";
 
 import { requireAuth, requireRole } from "../../middlewares/auth.middleware.js";
+import { requireExcelApiKey} from "../../middlewares/excelApiKey.middleware.js";
 
 const router = Router();
 const upload = multer({ storage: multer.memoryStorage() });
@@ -28,5 +30,11 @@ router.post("/carga-masiva", requireAuth,requireRole("developer","liderlogistica
 router.get("/:id", requireAuth, requireRole("developer","liderlogistica","laboratorio","gerente","supervisor","auxiliarlogistica1","auxiliarlogistica2", "torrecontrollogistica"),obtenerRecepcionAlcoholPorId);
 router.put("/:id",requireAuth, requireRole("developer","liderlogistica","laboratorio","gerente","supervisor","auxiliarlogistica1","auxiliarlogistica2", "torrecontrollogistica"), actualizarRecepcionAlcohol);
 router.delete("/:id", requireAuth, requireRole("developer","liderlogistica","laboratorio","gerente","supervisor","auxiliarlogistica1","auxiliarlogistica2", "torrecontrollogistica"),eliminarRecepcionAlcohol);
+
+router.get(
+  "/excel",
+  requireExcelApiKey,
+  obtenerRecepcionAlcoholExcel
+);
 
 export default router;

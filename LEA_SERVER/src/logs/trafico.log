@@ -753,3 +753,5 @@
 [4/6/2026 12:01:55] PUT /api/ricekanban/6a21920c1235b5d2247d5d73 | status=200 | rol=anonimo | email=anonimo
 [4/6/2026 12:02:19] PUT /api/ricekanban/6a21920c1235b5d2247d5d73 | status=200 | rol=anonimo | email=anonimo
 [4/6/2026 12:07:51] PUT /api/ricekanban/6a21920c1235b5d2247d5d73 | status=200 | rol=anonimo | email=anonimo
+[4/6/2026 13:29:27] POST /api/ricekanban | status=201 | rol=anonimo | email=anonimo
+[4/6/2026 14:33:50] POST /api/auth/logout | status=200 | rol=anonimo | email=anonimo
