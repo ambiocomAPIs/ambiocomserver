@@ -55,6 +55,7 @@ import ProductoDespacho from "./routes/Modulo_Logistica/Producto/ProductoDespach
 import DevCredentialValidation from "./routes/Dev_Functions/authDevCredentials.routes.js"
 import ColaboradoresLogistica from "./routes/Modulo_Logistica/Colaboradores/ColaboradoresLogisticaRoutes.js"
 import ClientesLogistica from "./routes/Modulo_Logistica/Clientes/ClientesLogisticaRoutes.js"
+import proveedoresLogisticaRoutes from "./routes/Modulo_Logistica/Proveedores/proveedoresLogisticaRoutes.js";
 import TransportadorasLogistica from "./routes/Modulo_Logistica/Transportadoras/TransportadoraLogisticaRoutes.js"
 import ProgramacionDespacho from "./routes/Modulo_Logistica/ProgramacionDespacho/programacionDespacho.routes.js"
 //Laboratorio
@@ -211,6 +212,7 @@ app.use("/api/alcoholesdespacho", ProductoDespacho);
 app.use("/api/auth", DevCredentialValidation);
 app.use("/api/personal", ColaboradoresLogistica);
 app.use("/api/clienteslogistica", ClientesLogistica);
+app.use("/api/proveedoreslogistica", proveedoresLogisticaRoutes);
 app.use("/api/transportadoraslogistica", TransportadorasLogistica);
 app.use("/api/programaciondespacho", ProgramacionDespacho);
 //Laboratorio

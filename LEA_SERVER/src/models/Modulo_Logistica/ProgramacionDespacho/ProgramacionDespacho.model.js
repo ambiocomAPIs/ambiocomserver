@@ -10,11 +10,31 @@ const ProgramacionDespachoSchema = new mongoose.Schema(
       trim: true,
       match: [ISO_DATE_REGEX, 'La fecha debe tener formato "YYYY-MM-DD".'],
     },
+
+    fechaEstimadaEntrega: {
+      type: String,
+      required: [true, "La fecha estimada de entrega es obligatoria."],
+      trim: true,
+      default: "NA",
+      validate: {
+        validator: function (value) {
+          const v = String(value ?? "").trim().toUpperCase();
+
+          if (v === "NA") return true;
+
+          return ISO_DATE_REGEX.test(v);
+        },
+        message:
+          'La fecha estimada de entrega debe ser "NA" o tener formato "YYYY-MM-DD".',
+      },
+    },
+
     horaProgramada: {
       type: String,
       trim: true,
       default: "",
     },
+
     placa: {
       type: String,
       trim: true,
@@ -62,6 +82,7 @@ const ProgramacionDespachoSchema = new mongoose.Schema(
       required: [true, "La cantidad es obligatoria."],
       min: [1, "La cantidad debe ser mayor a 0."],
     },
+
     cumplido: {
       type: Boolean,
       default: false,
@@ -73,14 +94,15 @@ const ProgramacionDespachoSchema = new mongoose.Schema(
   }
 );
 
-// Índices útiles (opcional, pero recomendado)
+// Índices útiles
 ProgramacionDespachoSchema.index({ fecha: 1 });
+ProgramacionDespachoSchema.index({ fechaEstimadaEntrega: 1 });
 ProgramacionDespachoSchema.index({ cliente: 1 });
 ProgramacionDespachoSchema.index({ producto: 1 });
 ProgramacionDespachoSchema.index({ transportadora: 1 });
 ProgramacionDespachoSchema.index({ destino: 1 });
 
-// Normalización adicional (por si llegan espacios raros)
+// Normalización adicional
 ProgramacionDespachoSchema.pre("save", function (next) {
   const normalize = (v) =>
     String(v ?? "")
@@ -89,6 +111,11 @@ ProgramacionDespachoSchema.pre("save", function (next) {
       .trim();
 
   this.fecha = normalize(this.fecha);
+
+  this.fechaEstimadaEntrega =
+    normalize(this.fechaEstimadaEntrega).toUpperCase() || "NA";
+
+  this.horaProgramada = normalize(this.horaProgramada);
   this.placa = normalize(this.placa);
   this.trailer = normalize(this.trailer);
   this.conductor = normalize(this.conductor);

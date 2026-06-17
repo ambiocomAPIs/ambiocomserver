@@ -22,10 +22,24 @@ const isValidISODate = (s) => {
   return dt.getFullYear() === yyyy && dt.getMonth() === mm - 1 && dt.getDate() === dd;
 };
 
+const normalizeFechaEstimadaEntrega = (value) => {
+  const v = normalizeText(value).toUpperCase();
+  return v || "NA";
+};
+
+const isValidFechaEstimadaEntrega = (value) => {
+  const v = normalizeFechaEstimadaEntrega(value);
+
+  if (v === "NA") return true;
+
+  return isValidISODate(v);
+};
+
 const validatePayload = (body) => {
   const errors = [];
 
   const fecha = normalizeText(body.fecha);
+  const fechaEstimadaEntrega = normalizeFechaEstimadaEntrega(body.fechaEstimadaEntrega);
   const cliente = normalizeText(body.cliente);
   const producto = normalizeText(body.producto);
   const destino = normalizeText(body.destino);
@@ -35,7 +49,11 @@ const validatePayload = (body) => {
   if (!fecha || !isValidISODate(fecha)) {
     errors.push('La fecha debe tener formato "YYYY-MM-DD" y ser válida.');
   }
-
+  if (!isValidFechaEstimadaEntrega(fechaEstimadaEntrega)) {
+    errors.push(
+      'La fecha estimada de entrega debe ser "NA" o tener formato "YYYY-MM-DD".'
+    );
+  }
   if (!cliente) errors.push("El cliente es obligatorio.");
   if (!producto) errors.push("El producto es obligatorio.");
   if (!destino) errors.push("El destino es obligatorio.");
@@ -54,18 +72,15 @@ const validatePayload = (body) => {
 };
 
 // =====================================================
-// GET /api/programaciondespacho
 // - fecha=YYYY-MM-DD (exacta)
-// - filtros: cliente, producto, transportadora, destino
-// - buscador global: q
 // =====================================================
 export const getProgramaciones = async (req, res) => {
   try {
-    const { fecha, cliente, producto, transportadora, destino, q } = req.query;
+    const { fecha, fechaEstimadaEntrega, cliente, producto, transportadora, destino, q } = req.query;
 
     const filter = {};
 
-    // ✅ Fecha exacta
+    // Fecha exacta
     if (fecha) {
       const f = normalizeText(fecha);
       if (!isValidISODate(f)) {
@@ -74,17 +89,31 @@ export const getProgramaciones = async (req, res) => {
       filter.fecha = f;
     }
 
+    if (fechaEstimadaEntrega) {
+      const fee = normalizeFechaEstimadaEntrega(fechaEstimadaEntrega);
+
+      if (!isValidFechaEstimadaEntrega(fee)) {
+        return res.status(400).json({
+          message:
+            'Filtro fecha estimada de entrega inválido. Use "NA" o "YYYY-MM-DD".',
+        });
+      }
+
+      filter.fechaEstimadaEntrega = fee;
+    }
+
     if (cliente) filter.cliente = normalizeText(cliente);
     if (producto) filter.producto = normalizeText(producto);
     if (transportadora) filter.transportadora = normalizeText(transportadora);
     if (destino) filter.destino = normalizeText(destino);
 
-    // ✅ Buscador global
+    // Buscador global
     if (q) {
       const text = normalizeText(q);
       const re = new RegExp(text.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "i");
       filter.$or = [
         { fecha: re },
+        { fechaEstimadaEntrega: re },
         { horaProgramada: re },
         { placa: re },
         { trailer: re },
@@ -105,9 +134,7 @@ export const getProgramaciones = async (req, res) => {
 };
 
 // =====================================================
-// ✅ NUEVO: GET /api/programaciondespacho/rango?from=YYYY-MM-DD&to=YYYY-MM-DD
 // - rango incluyente por string ISO
-// - opcional: cliente, producto, transportadora, destino, q
 // =====================================================
 export const getProgramacionesByRango = async (req, res) => {
   try {
@@ -138,23 +165,24 @@ export const getProgramacionesByRango = async (req, res) => {
 
     const filter = {};
 
-    // ✅ Rango incluyente sobre string ISO
+    // Rango incluyente sobre string ISO
     filter.fecha = {};
     if (fFrom) filter.fecha.$gte = fFrom;
     if (fTo) filter.fecha.$lte = fTo;
 
-    // ✅ filtros opcionales (por si el front los manda)
+    // filtros opcionales (por si el front los manda)
     if (cliente) filter.cliente = normalizeText(cliente);
     if (producto) filter.producto = normalizeText(producto);
     if (transportadora) filter.transportadora = normalizeText(transportadora);
     if (destino) filter.destino = normalizeText(destino);
 
-    // ✅ buscador opcional
+    // buscador opcional
     if (q) {
       const text = normalizeText(q);
       const re = new RegExp(text.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "i");
       filter.$or = [
         { fecha: re },
+        { fechaEstimadaEntrega: re },
         { horaProgramada: re },
         { placa: re },
         { trailer: re },
@@ -174,7 +202,6 @@ export const getProgramacionesByRango = async (req, res) => {
   }
 };
 
-// GET /api/programaciondespacho/:id
 export const getProgramacionById = async (req, res) => {
   try {
     const { id } = req.params;
@@ -189,7 +216,6 @@ export const getProgramacionById = async (req, res) => {
   }
 };
 
-// POST /api/programaciondespacho
 export const createProgramacion = async (req, res) => {
   try {
     const errors = validatePayload(req.body);
@@ -199,6 +225,7 @@ export const createProgramacion = async (req, res) => {
 
     const payload = {
       fecha: normalizeText(req.body.fecha),
+      fechaEstimadaEntrega: normalizeFechaEstimadaEntrega(req.body.fechaEstimadaEntrega),
       horaProgramada: normalizeText(req.body.horaProgramada),
       placa: normalizeText(req.body.placa),
       trailer: normalizeText(req.body.trailer),
@@ -225,7 +252,6 @@ export const createProgramacion = async (req, res) => {
   }
 };
 
-// PUT /api/programaciondespacho/:id
 export const updateProgramacion = async (req, res) => {
   try {
     const { id } = req.params;
@@ -237,6 +263,7 @@ export const updateProgramacion = async (req, res) => {
 
     const payload = {
       fecha: normalizeText(req.body.fecha),
+      fechaEstimadaEntrega: normalizeFechaEstimadaEntrega(req.body.fechaEstimadaEntrega),
       horaProgramada: normalizeText(req.body.horaProgramada),
       placa: normalizeText(req.body.placa),
       trailer: normalizeText(req.body.trailer),
@@ -269,7 +296,6 @@ export const updateProgramacion = async (req, res) => {
   }
 };
 
-// DELETE /api/programaciondespacho/:id
 export const deleteProgramacion = async (req, res) => {
   try {
     const { id } = req.params;
@@ -284,7 +310,7 @@ export const deleteProgramacion = async (req, res) => {
   }
 };
 
-// PATCH /api/programaciondespacho/:id/cumplido con checklist
+// PATCH 
 export const updateCumplidoProgramacion = async (req, res) => {
   try {
     const { id } = req.params;
@@ -310,5 +336,47 @@ export const updateCumplidoProgramacion = async (req, res) => {
   } catch (error) {
     console.error("updateCumplidoProgramacion error:", error);
     return res.status(400).json({ message: "No se pudo actualizar el check de cumplimiento." });
+  }
+};
+
+// ingreso fecha estimada por comercial
+
+export const updateFechaEstimadaEntregaProgramacion = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { fechaEstimadaEntrega } = req.body;
+
+    const value = normalizeFechaEstimadaEntrega(fechaEstimadaEntrega);
+
+    if (value !== "NA" && !isValidISODate(value)) {
+      return res.status(400).json({
+        message:
+          'La fecha estimada de entrega debe ser "NA" o tener formato "YYYY-MM-DD".',
+      });
+    }
+
+    const updated = await ProgramacionDespacho.findByIdAndUpdate(
+      id,
+      { fechaEstimadaEntrega: value },
+      {
+        new: true,
+        runValidators: true,
+      }
+    );
+
+    if (!updated) {
+      return res.status(404).json({
+        message: "Programación no encontrada.",
+      });
+    }
+
+    return res.json(updated);
+  } catch (error) {
+    console.error("Error actualizando fecha estimada:", error);
+
+    return res.status(500).json({
+      message: "Error al actualizar la fecha estimada de entrega.",
+      error: error.message,
+    });
   }
 };
