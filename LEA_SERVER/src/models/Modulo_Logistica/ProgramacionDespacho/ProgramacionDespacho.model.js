@@ -1,6 +1,7 @@
 import mongoose from "mongoose";
 
 const ISO_DATE_REGEX = /^\d{4}-\d{2}-\d{2}$/;
+const ISO_DATETIME_REGEX = /^\d{4}-\d{2}-\d{2}\s\d{2}:\d{2}$/;
 
 const ProgramacionDespachoSchema = new mongoose.Schema(
   {
@@ -22,10 +23,10 @@ const ProgramacionDespachoSchema = new mongoose.Schema(
 
           if (v === "NA") return true;
 
-          return ISO_DATE_REGEX.test(v);
+          return ISO_DATETIME_REGEX.test(v);
         },
         message:
-          'La fecha estimada de entrega debe ser "NA" o tener formato "YYYY-MM-DD".',
+          'La fecha estimada de entrega debe ser "NA" o tener formato "YYYY-MM-DD HH:mm".',
       },
     },
 

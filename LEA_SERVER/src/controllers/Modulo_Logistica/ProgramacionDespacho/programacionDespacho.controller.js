@@ -22,9 +22,35 @@ const isValidISODate = (s) => {
   return dt.getFullYear() === yyyy && dt.getMonth() === mm - 1 && dt.getDate() === dd;
 };
 
+const ISO_DATETIME_REGEX = /^\d{4}-\d{2}-\d{2}\s\d{2}:\d{2}$/;
+
 const normalizeFechaEstimadaEntrega = (value) => {
   const v = normalizeText(value).toUpperCase();
-  return v || "NA";
+
+  if (!v) return "NA";
+  if (v === "NA" || v === "PENDIENTE") return "NA";
+
+  // Si viene viejo: 2026-06-22
+  if (ISO_DATE_REGEX.test(v)) {
+    return `${v} 00:00`;
+  }
+
+  if (/^\d{4}-\d{2}-\d{2}T\d{1,2}:\d{2}/.test(v)) {
+    const date = v.slice(0, 10);
+    const time = v.slice(11, 16);
+    const [hh, mm] = time.split(":");
+
+    return `${date} ${String(hh).padStart(2, "0")}:${mm}`;
+  }
+
+  if (/^\d{4}-\d{2}-\d{2}\s\d{1,2}:\d{2}$/.test(v)) {
+    const [date, time] = v.split(" ");
+    const [hh, mm] = time.split(":");
+
+    return `${date} ${String(hh).padStart(2, "0")}:${mm}`;
+  }
+
+  return v;
 };
 
 const isValidFechaEstimadaEntrega = (value) => {
@@ -32,8 +58,21 @@ const isValidFechaEstimadaEntrega = (value) => {
 
   if (v === "NA") return true;
 
-  return isValidISODate(v);
+  return ISO_DATETIME_REGEX.test(v);
 };
+
+// const normalizeFechaEstimadaEntrega = (value) => {
+//   const v = normalizeText(value).toUpperCase();
+//   return v || "NA";
+// };
+
+// const isValidFechaEstimadaEntrega = (value) => {
+//   const v = normalizeFechaEstimadaEntrega(value);
+
+//   if (v === "NA") return true;
+
+//   return isValidISODate(v);
+// };
 
 const validatePayload = (body) => {
   const errors = [];
@@ -348,7 +387,7 @@ export const updateFechaEstimadaEntregaProgramacion = async (req, res) => {
 
     const value = normalizeFechaEstimadaEntrega(fechaEstimadaEntrega);
 
-    if (value !== "NA" && !isValidISODate(value)) {
+    if (value !== "NA" && !isValidFechaEstimadaEntrega(value)) {
       return res.status(400).json({
         message:
           'La fecha estimada de entrega debe ser "NA" o tener formato "YYYY-MM-DD".',
