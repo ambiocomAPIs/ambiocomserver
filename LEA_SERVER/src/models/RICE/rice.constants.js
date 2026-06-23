@@ -1,8 +1,8 @@
 export const ESTADOS_RICE = [
   "Backlog",
   "En análisis",
-  "Priorizado",
-  "En sprint",
+  "En sprint Carril 1",
+  "En sprint Carril 2",
   "En ajuste",
   "Completado",
 ];
