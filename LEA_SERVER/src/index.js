@@ -65,7 +65,8 @@ import trazabilidadloteproduccionLaboratorioRoutes from "./routes/ModuloLaborato
 import controlCalidadProcesoDestileriaRoutes from "./routes/ModuloLaboratorio/ControlCalidadProcesoDestileriaRoutes.js";
 import trazabilidadRegistroLoteProduccionRoutes from "./routes/ModuloLaboratorio/TrazabilidadRegistroDeLotesDeProduccionroute.js";
 //COMERCIALES
-import RutasFletesAmbiocom from "./routes/Comerciales/rutasFletesAmbiocom.routes.js";
+import RutasFletesAmbiocom from "./routes/Modulo_Comercial/rutasFletesAmbiocom.routes.js";
+import cotizacionAlcoholRoutes from "./routes/Modulo_Comercial/CotizadorAlcoholesComercial.routes.js";
 //PTAP
 import regeneracionResinaRoutes from "./routes/PTAP/regeneracionResina.routes.js";
 //autenticacion y login
@@ -224,6 +225,7 @@ app.use("/api/trazabilidad-laboratorio-control-proceso",controlCalidadProcesoDes
 app.use("/api/trazabilidad-laboratorio-lote-produccion",trazabilidadRegistroLoteProduccionRoutes);
 //COMERCIALES
 app.use("/api/rutas-fletes-ambiocom", RutasFletesAmbiocom);
+app.use("/api/cotizaciones-alcoholes", cotizacionAlcoholRoutes);
 //PTAP
 app.use("/api/regeneraciones-resinas", regeneracionResinaRoutes);
 //autenticacion y login

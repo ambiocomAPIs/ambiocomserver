@@ -1055,3 +1055,8 @@
 [24/6/2026 13:15:45] POST /api/auth/logout | status=200 | rol=anonimo | email=anonimo
 [24/6/2026 13:24:29] POST /api/auth/login | status=200 | rol=anonimo | email=anonimo
 [24/6/2026 14:00:11] POST /api/auth/login | status=200 | rol=developer | email=desarrolladores.ambiocom@ambiocom.com
+[24/6/2026 15:21:14] POST /api/auth/logout | status=200 | rol=anonimo | email=anonimo
+[24/6/2026 15:21:28] POST /api/auth/login | status=200 | rol=anonimo | email=anonimo
+[24/6/2026 16:20:08] POST /api/auth/login | status=200 | rol=developer | email=desarrolladores.ambiocom@ambiocom.com
+[24/6/2026 16:22:07] POST /api/cotizaciones-alcoholes | status=201 | rol=developer | email=desarrolladores.ambiocom@ambiocom.com
+[24/6/2026 16:22:43] POST /api/cotizaciones-alcoholes | status=201 | rol=developer | email=desarrolladores.ambiocom@ambiocom.com
