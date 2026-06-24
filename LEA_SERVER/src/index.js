@@ -44,7 +44,7 @@ import MedidoresEnergia from "./routes/medidoresEnergiaRoutes.js";
 import ColumnaIngresoCarbonMadera from "./routes/ColumnaIngresoCarbonMadera.js";
 import ingresoCarbonMadera from "./routes/medidoresIngresoCarbonMadera.js";
 //Modulo informes
-import InformeAlcoholes from "./routes/informesAlcoholRoutes.js";
+import InformeAlcoholes from "./routes/Modulo_Informes/informesAlcoholRoutes.js";
 //Modulo_Logistica
 import RecepcionAlcoholesLogistica from "./routes/Modulo_Logistica/RecepcionAlcoholesLogisticaRoutes.js";
 import ColumnaRecepcionAlcoholesLogistica from "./routes/Modulo_Logistica/ColumnaRecepcionAlcoholesLogisticaRoutes.js";
@@ -64,7 +64,8 @@ import registroregeneracionresinas from "./routes/ModuloLaboratorio/RegistroRege
 import trazabilidadloteproduccionLaboratorioRoutes from "./routes/ModuloLaboratorio/TrazabilidadLoteDeProduccionroutes.js";
 import controlCalidadProcesoDestileriaRoutes from "./routes/ModuloLaboratorio/ControlCalidadProcesoDestileriaRoutes.js";
 import trazabilidadRegistroLoteProduccionRoutes from "./routes/ModuloLaboratorio/TrazabilidadRegistroDeLotesDeProduccionroute.js";
-
+//COMERCIALES
+import RutasFletesAmbiocom from "./routes/Comerciales/rutasFletesAmbiocom.routes.js";
 //PTAP
 import regeneracionResinaRoutes from "./routes/PTAP/regeneracionResina.routes.js";
 //autenticacion y login
@@ -221,6 +222,8 @@ app.use("/regeneracionresinas/api/analisis-agua", registroregeneracionresinas);
 app.use("/api/trazabilidadloteproduccionlaboratorio", trazabilidadloteproduccionLaboratorioRoutes);
 app.use("/api/trazabilidad-laboratorio-control-proceso",controlCalidadProcesoDestileriaRoutes);
 app.use("/api/trazabilidad-laboratorio-lote-produccion",trazabilidadRegistroLoteProduccionRoutes);
+//COMERCIALES
+app.use("/api/rutas-fletes-ambiocom", RutasFletesAmbiocom);
 //PTAP
 app.use("/api/regeneraciones-resinas", regeneracionResinaRoutes);
 //autenticacion y login
