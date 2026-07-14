@@ -43,6 +43,11 @@ import ColumnaMedidoresEnergia from "./routes/ColumnaMedidorEnergiaRoutes.js";
 import MedidoresEnergia from "./routes/medidoresEnergiaRoutes.js";
 import ColumnaIngresoCarbonMadera from "./routes/ColumnaIngresoCarbonMadera.js";
 import ingresoCarbonMadera from "./routes/medidoresIngresoCarbonMadera.js";
+//Modulo produccion
+import seguimientoTotalizadoresU400Routes from "./routes/Modulo_Produccion/seguimientoTotalizadoresU400.routes.js";
+import ingresosCombustiblesRoutes from "./routes/Modulo_Produccion/IngresoCombustibleCarbonyMaderaProduccion.routes.js";
+import materialesCombustiblesDetailsRoutes from "./routes/Modulo_Produccion/materialesCombustiblesDetails.routes.js";
+import consumoCombustiblesRoutes from "./routes/Modulo_Produccion/consumoCombustibles.routes.js";
 //Modulo informes
 import InformeAlcoholes from "./routes/Modulo_Informes/informesAlcoholRoutes.js";
 //Modulo_Logistica
@@ -202,6 +207,11 @@ app.use("/api/medidoresenergia", MedidoresEnergia);
 app.use("/api/columnamedidoresenergia", ColumnaMedidoresEnergia);
 app.use("/api/ingresocarbonmadera", ingresoCarbonMadera);
 app.use("/api/columnaingresocarbonmadera", ColumnaIngresoCarbonMadera);
+//Modulo produccion
+app.use("/api/seguimiento-totalizadores", seguimientoTotalizadoresU400Routes);
+app.use("/api/ingresos-combustibles", ingresosCombustiblesRoutes);
+app.use("/api/materiales-combustibles", materialesCombustiblesDetailsRoutes);
+app.use("/api/consumos-combustibles", consumoCombustiblesRoutes);
 //Modulo Informes
 app.use("/api/informes-alcoholes", InformeAlcoholes);
 //Modulo Logistica
