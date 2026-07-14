@@ -17,22 +17,22 @@ import { requireAuth, requireRole } from "../../middlewares/auth.middleware.js";
 const router = express.Router();
 
 // Consultar matriz activa
-router.get("/", requireAuth, requireRole("developer", "gerente", "comerciales"), obtenerMatrizActual);
+router.get("/", requireAuth, requireRole("developer", "gerente", "comercial"), obtenerMatrizActual);
 // Crear nueva matriz
-router.post("/", requireAuth, requireRole("developer", "gerente", "supervisor"), crearMatriz);
+router.post("/", requireAuth, requireRole("developer", "gerente",  "comercial"), crearMatriz);
 // Guardar/reemplazar matriz activa completa
-router.put("/actual", requireAuth, requireRole("developer", "gerente", "supervisor"), guardarMatrizActual);
+router.put("/actual", requireAuth, requireRole("developer", "gerente",  "comercial"), guardarMatrizActual);
 // Actualizar matriz específica completa
-router.put("/:id", requireAuth, requireRole("developer", "gerente", "supervisor"), actualizarMatrizPorId);
+router.put("/:id", requireAuth, requireRole("developer", "gerente",  "comercial"), actualizarMatrizPorId);
 // Actualizar columnas de transportadoras
-router.patch("/:id/transportadoras", requireAuth, requireRole("developer", "gerente", "supervisor"), actualizarTransportadoras);
+router.patch("/:id/transportadoras", requireAuth, requireRole("developer", "gerente",  "comercial"), actualizarTransportadoras);
 // Agregar fila
-router.post("/:id/filas", requireAuth, requireRole("developer", "gerente", "supervisor"), agregarFila);
+router.post("/:id/filas", requireAuth, requireRole("developer", "gerente",  "comercial"), agregarFila);
 // Actualizar fila o celda
-router.patch("/:id/filas/:rowId", requireAuth, requireRole("developer", "gerente", "supervisor"), actualizarFila);
+router.patch("/:id/filas/:rowId", requireAuth, requireRole("developer", "gerente",  "comercial"), actualizarFila);
 // Eliminar fila
-router.delete("/:id/filas/:rowId", requireAuth, requireRole("developer", "gerente", "supervisor"), eliminarFila);
+router.delete("/:id/filas/:rowId", requireAuth, requireRole("developer", "gerente",  "comercial"), eliminarFila);
 // Desactivar matriz completa
-router.delete("/:id", requireAuth, requireRole("developer", "gerente"), desactivarMatriz);
+router.delete("/:id", requireAuth, requireRole("developer", "gerente",  "comercial"), desactivarMatriz);
 
 export default router;
