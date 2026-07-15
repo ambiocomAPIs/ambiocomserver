@@ -12,22 +12,27 @@ export const getTanques = async (req, res) => {
 
 // Crear un nuevo tanque
 export const createTanque = async (req, res) => {
-  
   try {
     const { NombreTanque } = req.body;
 
-    // Verificar si ya existe un tanque con ese nombre (case-insensitive opcional)
     const existe = await Tanques.findOne({ NombreTanque });
 
     if (existe) {
-      return res.status(400).json({ error: "Ya existe un tanque con ese nombre" });
+      return res.status(400).json({
+        error: "Ya existe un tanque con ese nombre",
+      });
     }
 
     const nuevoTanque = new Tanques(req.body);
     const tanqueGuardado = await nuevoTanque.save();
+
     res.status(201).json(tanqueGuardado);
   } catch (error) {
-    res.status(500).json({ error: "Error al crear tanque" });
+    console.error("Error creando tanque:", error);
+
+    res.status(500).json({
+      error: "Error al crear tanque",
+    });
   }
 };
 
@@ -36,12 +41,17 @@ export const updateTanque = async (req, res) => {
   try {
     const tanqueActualizado = await Tanques.findByIdAndUpdate(
       req.params.id,
-      req.body,  // Aquí también puede venir VolumenTotal
+      req.body,
       { new: true }
     );
+
     res.status(200).json(tanqueActualizado);
   } catch (error) {
-    res.status(500).json({ error: "Error al actualizar tanque" });
+    console.error("Error actualizando tanque:", error);
+
+    res.status(500).json({
+      error: "Error al actualizar tanque",
+    });
   }
 };
 
@@ -49,8 +59,13 @@ export const updateTanque = async (req, res) => {
 export const deleteTanque = async (req, res) => {
   try {
     await Tanques.findByIdAndDelete(req.params.id);
-    res.status(200).json({ mensaje: "Tanque eliminado" });
+
+    res.status(200).json({
+      mensaje: "Tanque eliminado",
+    });
   } catch (error) {
-    res.status(500).json({ error: "Error al eliminar tanque" });
+    res.status(500).json({
+      error: "Error al eliminar tanque",
+    });
   }
 };

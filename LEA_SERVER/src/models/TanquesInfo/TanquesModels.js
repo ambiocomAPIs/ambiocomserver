@@ -1,13 +1,36 @@
-import mongoose from 'mongoose';
+import mongoose from "mongoose";
 
-// Definir el esquema con 18 campos
-const TanquesSchema = new mongoose.Schema({
-  NombreTanque: { type: String },
-  Disposicion: { type: String },
-  Factor: { type: String },
-  VolumenTotal: { type: String },
-}, { timestamps: true });  // Este campo agrega createdAt y updatedAt automáticamente
+// Definir el esquema
+const TanquesSchema = new mongoose.Schema(
+  {
+    NombreTanque: { type: String },
+    Disposicion: { type: String },
+    Factor: { type: String },
+    VolumenTotal: { type: String },
 
-const Tanques = mongoose.model('Tanques', TanquesSchema);
+    GradoAlcoholico: {
+      type: Number,
+      set: (valor) => {
+        if (
+          valor === "" ||
+          valor === null ||
+          valor === undefined
+        ) {
+          return undefined;
+        }
+
+        // Permite recibir 96,2 o 96.2
+        const valorNormalizado = String(valor)
+          .trim()
+          .replace(",", ".");
+
+        return Number(valorNormalizado);
+      },
+    },
+  },
+  { timestamps: true }
+);
+
+const Tanques = mongoose.model("Tanques", TanquesSchema);
 
 export default Tanques;

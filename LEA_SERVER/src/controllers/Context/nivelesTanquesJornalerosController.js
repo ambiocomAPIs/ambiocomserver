@@ -1,21 +1,71 @@
-import NivelDiarioJornalerosLogistica from '../../models/Context/nivelesTanquesJornalerosModels.js';
-import XLSX from 'xlsx';
+import NivelDiarioJornalerosLogistica from "../../models/Context/nivelesTanquesJornalerosModels.js";
+import XLSX from "xlsx";
+
+/*
+  Normaliza números que pueden venir con coma o punto.
+  Ejemplos:
+  "96,2" -> 96.2
+  "96.2" -> 96.2
+  ""     -> undefined
+*/
+const normalizarNumeroOpcional = (valor) => {
+  if (valor === null || valor === undefined || valor === "") {
+    return undefined;
+  }
+
+  const normalizado =
+    typeof valor === "string"
+      ? valor.trim().replace(/\s/g, "").replace(",", ".")
+      : valor;
+
+  const numero = Number(normalizado);
+
+  return Number.isFinite(numero) ? numero : undefined;
+};
+
+/*
+  Normaliza números obligatorios o de operación.
+  Si no logra convertir, retorna 0.
+*/
+const normalizarNumeroSeguro = (valor) => {
+  if (valor === null || valor === undefined || valor === "") {
+    return 0;
+  }
+
+  const normalizado =
+    typeof valor === "string"
+      ? valor.trim().replace(/\s/g, "").replace(",", ".")
+      : valor;
+
+  const numero = Number(normalizado);
+
+  return Number.isFinite(numero) ? numero : 0;
+};
 
 // GET - Obtener todos los registros
 export const obtenerNiveles = async (req, res) => {
   try {
-    const niveles = await NivelDiarioJornalerosLogistica.find().sort({ createdAt: -1 });
+    const niveles = await NivelDiarioJornalerosLogistica.find().sort({
+      createdAt: -1,
+    });
+
     res.status(200).json(niveles);
   } catch (error) {
-    res.status(500).json({ message: 'Error al obtener los registros', error });
+    res.status(500).json({
+      message: "Error al obtener los registros",
+      error,
+    });
   }
 };
 
+// POST - Crear niveles diarios
 export const crearNivel = async (req, res) => {
   const datos = req.body;
 
   if (!Array.isArray(datos) || datos.length === 0) {
-    return res.status(400).json({ message: 'Se debe enviar un array de datos.' });
+    return res.status(400).json({
+      message: "Se debe enviar un array de datos.",
+    });
   }
 
   const resultados = [];
@@ -23,47 +73,78 @@ export const crearNivel = async (req, res) => {
 
   for (const dato of datos) {
     try {
-
-      const { NombreTanque, NivelTanque, Responsable, Observaciones, FechaRegistro, Factor, Disposicion } = dato;
+      const {
+        NombreTanque,
+        NivelTanque,
+        Responsable,
+        Observaciones,
+        FechaRegistro,
+        Factor,
+        Disposicion,
+        GradoAlcoholico,
+      } = dato;
 
       // Validaciones básicas
-      if (!NombreTanque) throw new Error('El campo NombreTanque es obligatorio.');
-      if (NivelTanque === undefined || NivelTanque === null) throw new Error('El campo NivelTanque es obligatorio.');
-      if (!FechaRegistro) throw new Error('El campo FechaRegistro es obligatorio.');
+      if (!NombreTanque) {
+        throw new Error("El campo NombreTanque es obligatorio.");
+      }
+
+      if (NivelTanque === undefined || NivelTanque === null) {
+        throw new Error("El campo NivelTanque es obligatorio.");
+      }
+
+      if (!FechaRegistro) {
+        throw new Error("El campo FechaRegistro es obligatorio.");
+      }
+
       // Validar formato de la fecha
       const datePattern = /^\d{4}-\d{2}-\d{2}$/;
+
       if (!datePattern.test(FechaRegistro)) {
-        throw new Error('La fecha debe estar en el formato YYYY-MM-DD.');
+        throw new Error("La fecha debe estar en el formato YYYY-MM-DD.");
       }
 
       // Verificar duplicados por tanque y fecha
-      const existeRegistro = await NivelDiarioJornalerosLogistica.findOne({ NombreTanque, FechaRegistro });
+      const existeRegistro = await NivelDiarioJornalerosLogistica.findOne({
+        NombreTanque,
+        FechaRegistro,
+      });
+
       if (existeRegistro) {
-        throw new Error(`Ya existe un registro para el tanque ${NombreTanque} en la fecha ${FechaRegistro}.`);
+        throw new Error(
+          `Ya existe un registro para el tanque ${NombreTanque} en la fecha ${FechaRegistro}.`
+        );
       }
 
       // Guardar nuevo registro
       const nuevoNivel = new NivelDiarioJornalerosLogistica({
         NombreTanque,
-        NivelTanque,
-        Responsable: Responsable || '',
-        Observaciones: Observaciones || '',
+        NivelTanque: normalizarNumeroSeguro(NivelTanque),
+        Responsable: Responsable || "",
+        Observaciones: Observaciones || "",
         FechaRegistro,
         Factor,
-        Disposicion
+        Disposicion,
+        GradoAlcoholico: normalizarNumeroOpcional(GradoAlcoholico),
       });
 
       const resultado = await nuevoNivel.save();
       resultados.push(resultado);
-
     } catch (error) {
-      console.error(`Error al procesar tanque ${dato.NombreTanque}:`, error.message);
-      errores.push({ dato, error: error.message });
+      console.error(
+        `Error al procesar tanque ${dato?.NombreTanque}:`,
+        error.message
+      );
+
+      errores.push({
+        dato,
+        error: error.message,
+      });
     }
   }
 
   res.status(207).json({
-    message: 'Proceso de carga finalizado.',
+    message: "Proceso de carga finalizado.",
     exitosos: resultados.length,
     errores,
     data: {
@@ -73,43 +154,71 @@ export const crearNivel = async (req, res) => {
   });
 };
 
-//carga masiva excel
-
+// POST - Carga masiva Excel
 export const cargarExcelNivelesTanquesJornaleros = async (req, res) => {
   const file = req.files?.excelFile;
 
   if (!file) {
-    return res.status(400).json({ message: "No se ha cargado ningún archivo" });
+    return res.status(400).json({
+      message: "No se ha cargado ningún archivo",
+    });
   }
 
   try {
-    const workbook = XLSX.read(file.data, { type: "buffer" });
+    const workbook = XLSX.read(file.data, {
+      type: "buffer",
+    });
+
     const sheetName = workbook.SheetNames[0];
     const worksheet = workbook.Sheets[sheetName];
-    const data = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
+
+    const data = XLSX.utils.sheet_to_json(worksheet, {
+      header: 1,
+    });
 
     let procesados = 0;
     let errores = [];
 
-    // Suponemos encabezado: [Tanque, Fecha, Nivel, Responsable, Disposicion, Factor, Observaciones]
+    /*
+      Formato anterior compatible:
+      [Tanque, Fecha, Nivel, Responsable, Disposicion, Factor, Observaciones]
+
+      Nuevo formato compatible:
+      [Tanque, Fecha, Nivel, Responsable, Disposicion, Factor, GradoAlcoholico, Observaciones]
+    */
     for (let i = 1; i < data.length; i++) {
       try {
-        const [Tanque, Fecha, Nivel, Responsable, Disposicion, Factor, Observaciones] = data[i];
+        const fila = data[i];
+
+        const Tanque = fila[0];
+        const Fecha = fila[1];
+        const Nivel = fila[2];
+        const Responsable = fila[3];
+        const Disposicion = fila[4];
+        const Factor = fila[5];
+
+        const GradoAlcoholico = fila.length >= 8 ? fila[6] : "";
+        const Observaciones = fila.length >= 8 ? fila[7] : fila[6];
 
         if (!Tanque || !Fecha) {
-          console.warn("Fila inválida omitida:", data[i]);
+          console.warn("Fila inválida omitida:", fila);
           continue;
         }
 
-        // Parse fecha (string o Excel date)
+        // Parse fecha: string, Date o serial de Excel
         let fechaString = Fecha;
+
         if (Fecha instanceof Date) {
           fechaString = Fecha.toISOString().split("T")[0];
-        } else if (/^\d{4}-\d{2}-\d{2}$/.test(Fecha)) {
-          fechaString = Fecha; // ya viene como yyyy-mm-dd
+        } else if (/^\d{4}-\d{2}-\d{2}$/.test(String(Fecha))) {
+          fechaString = String(Fecha);
         } else {
-          // si es número (fecha serial de Excel)
           const fechaExcel = XLSX.SSF.parse_date_code(Fecha);
+
+          if (!fechaExcel) {
+            throw new Error("La fecha no tiene un formato válido.");
+          }
+
           fechaString = new Date(
             fechaExcel.y,
             fechaExcel.m - 1,
@@ -119,11 +228,7 @@ export const cargarExcelNivelesTanquesJornaleros = async (req, res) => {
             .split("T")[0];
         }
 
-        // Parse nivel
-        const nivelParseado =
-          typeof Nivel === "string"
-            ? parseFloat(Nivel.replace(",", "."))
-            : Nivel || 0;
+        const nivelParseado = normalizarNumeroSeguro(Nivel);
 
         const filtro = {
           NombreTanque: Tanque,
@@ -137,19 +242,28 @@ export const cargarExcelNivelesTanquesJornaleros = async (req, res) => {
           Responsable: Responsable || "",
           Disposicion: Disposicion || "",
           Factor: Factor || "",
+          GradoAlcoholico: normalizarNumeroOpcional(GradoAlcoholico),
           Observaciones: Observaciones || "",
         };
 
         await NivelDiarioJornalerosLogistica.findOneAndUpdate(
           filtro,
           actualizacion,
-          { upsert: true, new: true }
+          {
+            upsert: true,
+            new: true,
+            runValidators: true,
+          }
         );
 
         procesados++;
       } catch (err) {
         console.error("Error en fila:", data[i], err.message);
-        errores.push({ fila: i + 1, error: err.message });
+
+        errores.push({
+          fila: i + 1,
+          error: err.message,
+        });
       }
     }
 
@@ -160,38 +274,47 @@ export const cargarExcelNivelesTanquesJornaleros = async (req, res) => {
     });
   } catch (error) {
     console.error("❌ Error al procesar el archivo Excel:", error);
-    res.status(500).json({ message: "Error al procesar el archivo Excel", error });
+
+    res.status(500).json({
+      message: "Error al procesar el archivo Excel",
+      error,
+    });
   }
 };
 
-// GET - Obtener registros por FechaRegistro (yyyy-mm-dd)
+// GET - Obtener registros por FechaRegistro yyyy-mm-dd
 export const obtenerNivelesPorFecha = async (req, res) => {
   try {
     const { fecha } = req.params;
 
-    // Validar formato yyyy-mm-dd
     const datePattern = /^\d{4}-\d{2}-\d{2}$/;
+
     if (!datePattern.test(fecha)) {
-      return res
-        .status(400)
-        .json({ message: "La fecha debe estar en formato YYYY-MM-DD" });
+      return res.status(400).json({
+        message: "La fecha debe estar en formato YYYY-MM-DD",
+      });
     }
 
-    const registros = await NivelDiarioJornalerosLogistica
-      .find({ FechaRegistro: fecha })
-      .sort({ NombreTanque: 1 }); // opcional: orden A-Z
+    const registros = await NivelDiarioJornalerosLogistica.find({
+      FechaRegistro: fecha,
+    }).sort({
+      NombreTanque: 1,
+    });
 
     if (!registros || registros.length === 0) {
-      return res.status(200).json([]); // 👈 importante: devuelve array vacío
+      return res.status(200).json([]);
     }
 
     res.status(200).json(registros);
   } catch (error) {
     console.error("❌ Error al consultar por fecha:", error);
-    res.status(500).json({ message: "Error al consultar por fecha", error });
+
+    res.status(500).json({
+      message: "Error al consultar por fecha",
+      error,
+    });
   }
 };
-
 
 // GET - Obtener niveles para Excel mediante API Key
 export const obtenerNivelesExcel = async (req, res) => {
@@ -205,7 +328,6 @@ export const obtenerNivelesExcel = async (req, res) => {
 
     const filtro = {};
 
-    // Filtrar por rango de fechas
     if (fechaDesde || fechaHasta) {
       filtro.FechaRegistro = {};
 
@@ -218,7 +340,6 @@ export const obtenerNivelesExcel = async (req, res) => {
       }
     }
 
-    // Filtrar por tanque
     if (tanque) {
       filtro.NombreTanque = tanque;
     }
@@ -228,8 +349,7 @@ export const obtenerNivelesExcel = async (req, res) => {
       50000
     );
 
-    const niveles = await NivelDiarioJornalerosLogistica
-      .find(filtro)
+    const niveles = await NivelDiarioJornalerosLogistica.find(filtro)
       .sort({
         FechaRegistro: -1,
         NombreTanque: 1,
@@ -237,7 +357,6 @@ export const obtenerNivelesExcel = async (req, res) => {
       .limit(limiteSeguro)
       .lean();
 
-    // Eliminar campos internos de MongoDB
     const datosExcel = niveles.map((registro) => {
       const {
         _id,
@@ -264,76 +383,93 @@ export const obtenerNivelesExcel = async (req, res) => {
   }
 };
 
-
 // DELETE - Eliminar registros por FechaRegistro
 export const eliminarPorFechaRegistro = async (req, res) => {
-  const { FechaRegistro } = req.body; 
-  
+  const { FechaRegistro } = req.body;
+
   if (!FechaRegistro) {
-    return res.status(400).json({ message: 'Debe proporcionar el campo FechaRegistro.' });
+    return res.status(400).json({
+      message: "Debe proporcionar el campo FechaRegistro.",
+    });
   }
 
   try {
-    // Validar formato de la fecha
     const datePattern = /^\d{4}-\d{2}-\d{2}$/;
+
     if (!datePattern.test(FechaRegistro)) {
-      return res.status(400).json({ message: 'La fecha debe estar en el formato YYYY-MM-DD.' });
+      return res.status(400).json({
+        message: "La fecha debe estar en el formato YYYY-MM-DD.",
+      });
     }
-    // Buscar documentos con esa fecha
-    const registros = await NivelDiarioJornalerosLogistica.find({ FechaRegistro });
+
+    const registros = await NivelDiarioJornalerosLogistica.find({
+      FechaRegistro,
+    });
 
     if (registros.length === 0) {
-      return res.status(404).json({ message: `No se encontraron registros con la fecha ${FechaRegistro}.` });
+      return res.status(404).json({
+        message: `No se encontraron registros con la fecha ${FechaRegistro}.`,
+      });
     }
-    // Obtener los IDs de los registros
-    const ids = registros.map(reg => reg._id);
-    // Eliminar por ID
-    await NivelDiarioJornalerosLogistica.deleteMany({ _id: { $in: ids } });
+
+    const ids = registros.map((reg) => reg._id);
+
+    await NivelDiarioJornalerosLogistica.deleteMany({
+      _id: {
+        $in: ids,
+      },
+    });
+
     res.status(200).json({
       message: `Registros eliminados correctamente para la fecha ${FechaRegistro}.`,
       eliminados: registros.length,
       ids,
     });
-
   } catch (error) {
-    console.error('Error al eliminar registros por fecha:', error);
-    res.status(500).json({ message: 'Error al eliminar registros por fecha.', error });
+    console.error("Error al eliminar registros por fecha:", error);
+
+    res.status(500).json({
+      message: "Error al eliminar registros por fecha.",
+      error,
+    });
   }
 };
 
-
-// PUT - Actualizar registros por FechaRegistro (reemplaza todos los de esa fecha)
+// PUT - Actualizar registros por FechaRegistro
 export const actualizarNivelesPorFecha = async (req, res) => {
   const datos = req.body;
 
   if (!Array.isArray(datos) || datos.length === 0) {
-    return res.status(400).json({ message: "Se debe enviar un array de datos." });
+    return res.status(400).json({
+      message: "Se debe enviar un array de datos.",
+    });
   }
 
   try {
     const { FechaRegistro } = datos[0];
 
-    // Validar formato de la fecha
     const datePattern = /^\d{4}-\d{2}-\d{2}$/;
+
     if (!datePattern.test(FechaRegistro)) {
-      return res
-        .status(400)
-        .json({ message: "La fecha debe estar en formato YYYY-MM-DD." });
+      return res.status(400).json({
+        message: "La fecha debe estar en formato YYYY-MM-DD.",
+      });
     }
 
-    // Eliminar registros existentes de esa fecha
-    await NivelDiarioJornalerosLogistica.deleteMany({ FechaRegistro });
+    await NivelDiarioJornalerosLogistica.deleteMany({
+      FechaRegistro,
+    });
 
-    // Insertar los nuevos registros
     const nuevos = await NivelDiarioJornalerosLogistica.insertMany(
       datos.map((d) => ({
         NombreTanque: d.NombreTanque,
-        NivelTanque: d.NivelTanque,
+        NivelTanque: normalizarNumeroSeguro(d.NivelTanque),
         Responsable: d.Responsable || "",
         Observaciones: d.Observaciones || "",
         FechaRegistro: d.FechaRegistro,
         Factor: d.Factor,
         Disposicion: d.Disposicion,
+        GradoAlcoholico: normalizarNumeroOpcional(d.GradoAlcoholico),
       }))
     );
 
@@ -344,6 +480,89 @@ export const actualizarNivelesPorFecha = async (req, res) => {
     });
   } catch (error) {
     console.error("❌ Error al actualizar por fecha:", error);
-    res.status(500).json({ message: "Error al actualizar los registros", error });
+
+    res.status(500).json({
+      message: "Error al actualizar los registros",
+      error,
+    });
+  }
+};
+
+// GET - Resumen de niveles de tanques jornaleros para la bitácora
+export const obtenerResumenNivelesTanquesBitacora = async (req, res) => {
+  try {
+    const { fecha } = req.params;
+
+    const datePattern = /^\d{4}-\d{2}-\d{2}$/;
+
+    if (!datePattern.test(String(fecha || ""))) {
+      return res.status(400).json({
+        success: false,
+        message: "La fecha debe estar en formato YYYY-MM-DD.",
+      });
+    }
+
+    const registros = await NivelDiarioJornalerosLogistica.find({
+      FechaRegistro: fecha,
+    })
+      .sort({
+        NombreTanque: 1,
+      })
+      .lean();
+
+    const detalle = registros.map((registro) => {
+      const nivel = normalizarNumeroSeguro(registro.NivelTanque);
+      const factor = normalizarNumeroSeguro(registro.Factor);
+      const gradoAlcoholico = normalizarNumeroOpcional(
+        registro.GradoAlcoholico
+      );
+
+      const volumen = nivel * factor;
+
+      return {
+        tanque: registro.NombreTanque || "Sin definir",
+        disposicion: registro.Disposicion || "Sin definir",
+        nivel,
+        factor,
+        gradoAlcoholico,
+        volumen,
+        responsable: registro.Responsable || "",
+        observaciones: registro.Observaciones || "",
+      };
+    });
+
+    const volumenTotal = detalle.reduce(
+      (acumulado, item) =>
+        acumulado + normalizarNumeroSeguro(item.volumen),
+      0
+    );
+
+    const exists = detalle.length > 0;
+
+    return res.status(200).json({
+      success: true,
+      exists,
+      message: exists
+        ? "Niveles de tanques jornaleros consultados correctamente."
+        : "No se encontraron niveles de tanques jornaleros para la fecha consultada.",
+      data: {
+        fecha,
+        totalRegistros: detalle.length,
+        volumenTotal,
+        detalle,
+      },
+    });
+  } catch (error) {
+    console.error(
+      "Error obteniendo niveles de tanques jornaleros para la bitácora:",
+      error
+    );
+
+    return res.status(500).json({
+      success: false,
+      message:
+        "Error al obtener los niveles de tanques jornaleros para la bitácora.",
+      error: error.message,
+    });
   }
 };

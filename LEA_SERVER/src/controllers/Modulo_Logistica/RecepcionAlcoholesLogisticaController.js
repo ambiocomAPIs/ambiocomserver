@@ -58,6 +58,225 @@ export const obtenerRecepcionAlcohol = async (req, res) => {
   }
 };
 
+/* ================= BITÁCORA: RECEPCIONES POR FECHA ================= */
+const convertirNumeroSeguro = (value) => {
+  if (
+    value === null ||
+    value === undefined ||
+    value === ""
+  ) {
+    return 0;
+  }
+
+  if (typeof value === "number") {
+    return Number.isFinite(value) ? value : 0;
+  }
+
+  const normalizado = String(value)
+    .trim()
+    .replace(/\s/g, "")
+    .replace(/\.(?=\d{3}(?:\D|$))/g, "")
+    .replace(",", ".");
+
+  const numero = Number(normalizado);
+
+  return Number.isFinite(numero) ? numero : 0;
+};
+
+const esFechaISOValida = (value) => {
+  const fecha = String(value || "").trim();
+
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(fecha)) {
+    return false;
+  }
+
+  const [year, month, day] = fecha.split("-").map(Number);
+  const fechaUTC = new Date(Date.UTC(year, month - 1, day));
+
+  return (
+    fechaUTC.getUTCFullYear() === year &&
+    fechaUTC.getUTCMonth() === month - 1 &&
+    fechaUTC.getUTCDate() === day
+  );
+};
+
+export const obtenerRecepcionesAlcoholBitacoraPorFecha = async (
+  req,
+  res
+) => {
+  try {
+    const fecha = String(req.params.fecha || "").trim();
+
+    if (!esFechaISOValida(fecha)) {
+      return res.status(400).json({
+        success: false,
+        exists: false,
+        message:
+          "La fecha es obligatoria y debe tener el formato YYYY-MM-DD.",
+      });
+    }
+
+    /*
+     * La consulta se realiza exclusivamente por la fecha solicitada.
+     * No se carga el histórico completo del módulo de recepciones.
+     */
+    const registros = await ModelRecepcionAlcohol.find({ fecha })
+      .sort({ createdAt: 1 })
+      .lean();
+
+    const detalle = registros.map((registro, index) => {
+      const lecturas = registro?.lecturas || {};
+
+      return {
+        id: registro?._id,
+        numero: index + 1,
+        fecha: registro?.fecha || fecha,
+        responsable: registro?.responsable || "",
+        observaciones: registro?.observaciones || "",
+
+        producto: lecturas?.producto || "",
+        proveedor: lecturas?.proveedor || "",
+        transportadora: lecturas?.transportadora || "",
+        conductor: lecturas?.nombre_conductor || "",
+        placa: lecturas?.placa || "",
+        remolque: lecturas?.remolque || "",
+        remision: lecturas?.remision || "",
+        tanqueRecepcion: lecturas?.tanque_recepcion || "",
+        estadoVehiculo: lecturas?.estado_vehiculo || "",
+        horaIngreso: lecturas?.hora_ingreso || "",
+        horaSalida: lecturas?.hora_salida || "",
+        tiempoAmbiocom: lecturas?.tiempo_ambiocom || "",
+        fleteFacturado: Boolean(lecturas?.flete_facturado),
+
+        cantidadRecibida: convertirNumeroSeguro(
+          lecturas?.cantidad_recibida
+        ),
+
+        volumenRecepcionado: convertirNumeroSeguro(
+          lecturas?.Volumen_Recepcionado ??
+            lecturas?.volumen_recepcionado
+        ),
+
+        pesoEnviadoProveedor: convertirNumeroSeguro(
+          lecturas?.peso_enviado_neto_puerto
+        ),
+
+        pesoAmbiocom: convertirNumeroSeguro(
+          lecturas?.bascula_ambiocom
+        ),
+
+        densidadPuerto: convertirNumeroSeguro(
+          lecturas?.densidad_puerto
+        ),
+
+        densidadAmbiocom: convertirNumeroSeguro(
+          lecturas?.densidad
+        ),
+
+        /*
+         * Se conservan también todas las lecturas originales para que
+         * futuras columnas dinámicas sigan disponibles sin modificar
+         * este endpoint.
+         */
+        lecturas,
+      };
+    });
+
+    const resumen = detalle.reduce(
+      (acc, item) => {
+        acc.totalRecepciones += 1;
+        acc.cantidadRecibida += item.cantidadRecibida;
+        acc.volumenRecepcionado += item.volumenRecepcionado;
+        acc.pesoEnviadoProveedor += item.pesoEnviadoProveedor;
+        acc.pesoAmbiocom += item.pesoAmbiocom;
+
+        const estado = String(item.estadoVehiculo || "")
+          .trim()
+          .toUpperCase();
+
+        if (estado === "APROBADO") acc.aprobados += 1;
+        else if (estado === "RECHAZADO") acc.rechazados += 1;
+        else if (estado === "PROCESO") acc.enProceso += 1;
+        else acc.sinEstado += 1;
+
+        return acc;
+      },
+      {
+        totalRecepciones: 0,
+        cantidadRecibida: 0,
+        volumenRecepcionado: 0,
+        pesoEnviadoProveedor: 0,
+        pesoAmbiocom: 0,
+        aprobados: 0,
+        rechazados: 0,
+        enProceso: 0,
+        sinEstado: 0,
+      }
+    );
+
+    const mapaProductos = new Map();
+
+    detalle.forEach((item) => {
+      const producto =
+        String(item.producto || "").trim() || "Sin definir";
+
+      const actual = mapaProductos.get(producto) || {
+        producto,
+        recepciones: 0,
+        cantidadRecibida: 0,
+        volumenRecepcionado: 0,
+        pesoAmbiocom: 0,
+      };
+
+      actual.recepciones += 1;
+      actual.cantidadRecibida += item.cantidadRecibida;
+      actual.volumenRecepcionado += item.volumenRecepcionado;
+      actual.pesoAmbiocom += item.pesoAmbiocom;
+
+      mapaProductos.set(producto, actual);
+    });
+
+    const porProducto = Array.from(mapaProductos.values()).sort(
+      (a, b) => a.producto.localeCompare(b.producto, "es")
+    );
+
+    const exists = detalle.length > 0;
+
+    return res.status(200).json({
+      success: true,
+      exists,
+      message: exists
+        ? "Recepciones de alcohol consultadas correctamente."
+        : "No se encontraron recepciones de alcohol para la fecha consultada.",
+      data: {
+        fecha,
+        exists,
+        sinDatos: !exists,
+        mensaje: exists
+          ? "Recepciones de alcohol consultadas correctamente."
+          : "No se encontraron recepciones de alcohol para la fecha consultada.",
+        totalRegistros: detalle.length,
+        resumen,
+        porProducto,
+        detalle,
+      },
+    });
+  } catch (error) {
+    console.error(
+      "Error consultando recepciones de alcohol para bitácora:",
+      error
+    );
+
+    return res.status(500).json({
+      success: false,
+      exists: false,
+      message:
+        "Error al consultar las recepciones de alcohol para la bitácora.",
+      error: error.message,
+    });
+  }
+};
+
 /* ================= LISTAR PARA EXCEL ================= */
 export const obtenerRecepcionAlcoholExcel = async (req, res) => {
   try {

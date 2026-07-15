@@ -1,17 +1,44 @@
-import mongoose from 'mongoose';
+import mongoose from "mongoose";
 
-// Definir el esquema con 18 campos
-const NivelDiarioTanquesJornalerosSchema = new mongoose.Schema({
-  NombreTanque: { type: String },
-  NivelTanque: { type: Number }, 
-  Responsable: { type: String },
-  Disposicion: { type: String },
-  Factor: { type: String },
-  Observaciones: { type: String },
-  FechaRegistro: { type: String, default: null },  
-}, { timestamps: true });  // Este campo agrega createdAt y updatedAt automáticamente
+const NivelDiarioTanquesJornalerosSchema = new mongoose.Schema(
+  {
+    NombreTanque: { type: String },
+    NivelTanque: { type: Number },
+    Responsable: { type: String },
+    Disposicion: { type: String },
+    Factor: { type: String },
 
-// Crear el modelo
-const NivelDiarioJornalerosLogistica = mongoose.model('NivelDiarioJornalerosLogistica', NivelDiarioTanquesJornalerosSchema);
+    GradoAlcoholico: {
+      type: Number,
+      default: null,
+      set: (valor) => {
+        if (
+          valor === "" ||
+          valor === null ||
+          valor === undefined
+        ) {
+          return null;
+        }
+
+        const valorNormalizado = String(valor)
+          .trim()
+          .replace(",", ".");
+
+        const numero = Number(valorNormalizado);
+
+        return Number.isFinite(numero) ? numero : null;
+      },
+    },
+
+    Observaciones: { type: String },
+    FechaRegistro: { type: String, default: null },
+  },
+  { timestamps: true }
+);
+
+const NivelDiarioJornalerosLogistica = mongoose.model(
+  "NivelDiarioJornalerosLogistica",
+  NivelDiarioTanquesJornalerosSchema
+);
 
 export default NivelDiarioJornalerosLogistica;

@@ -75,6 +75,316 @@ export const obtenerDespachoAlcohol = async (req, res) => {
   }
 };
 
+
+/* ================= BITÁCORA: DESPACHOS POR FECHA ================= */
+const convertirNumeroDespachoSeguro = (value) => {
+  if (
+    value === null ||
+    value === undefined ||
+    value === ""
+  ) {
+    return 0;
+  }
+
+  if (typeof value === "number") {
+    return Number.isFinite(value) ? value : 0;
+  }
+
+  const normalizado = String(value)
+    .trim()
+    .replace(/\s/g, "")
+    .replace(/\.(?=\d{3}(?:\D|$))/g, "")
+    .replace(",", ".");
+
+  const numero = Number(normalizado);
+
+  return Number.isFinite(numero) ? numero : 0;
+};
+
+const normalizarEstadoDespacho = (value) =>
+  normalizeText(value).toUpperCase();
+
+export const obtenerDespachosAlcoholBitacoraPorFecha = async (
+  req,
+  res
+) => {
+  try {
+    const fecha = normalizeText(req.params.fecha);
+
+    if (!isValidISODate(fecha)) {
+      return res.status(400).json({
+        success: false,
+        exists: false,
+        message:
+          "La fecha es obligatoria y debe tener el formato YYYY-MM-DD.",
+      });
+    }
+
+    /*
+     * Consulta exacta por la fecha solicitada.
+     * No se carga el histórico completo ni se utiliza el endpoint /rango.
+     */
+    const registros = await ModelDespachoAlcohol.find({ fecha })
+      .sort({ createdAt: 1 })
+      .lean();
+
+    const detalle = registros.map((registro, index) => {
+      const lecturas = registro?.lecturas || {};
+
+      return {
+        id: registro?._id,
+        numero: index + 1,
+        fecha: registro?.fecha || fecha,
+        responsable: registro?.responsable || "",
+        observaciones: registro?.observaciones || "",
+
+        cliente: lecturas?.cliente || "",
+        producto: lecturas?.producto || "",
+        transportadora: lecturas?.transportadora || "",
+        conductor:
+          lecturas?.nombre_conductor ||
+          lecturas?.conductor ||
+          "",
+        placa: lecturas?.placa || "",
+        remolque: lecturas?.remolque || "",
+        remisionFactura: lecturas?.remision_factura || "",
+        ordenFabricacion: lecturas?.orden_fabricacion || "",
+
+        gradoAlcoholico:
+          lecturas?.grado_alcoholico_lab === null ||
+          lecturas?.grado_alcoholico_lab === undefined ||
+          lecturas?.grado_alcoholico_lab === ""
+            ? null
+            : convertirNumeroDespachoSeguro(
+                lecturas?.grado_alcoholico_lab
+              ),
+
+        densidad:
+          lecturas?.densidadlab_alcohol_tanque === null ||
+          lecturas?.densidadlab_alcohol_tanque === undefined ||
+          lecturas?.densidadlab_alcohol_tanque === ""
+            ? null
+            : convertirNumeroDespachoSeguro(
+                lecturas?.densidadlab_alcohol_tanque
+              ),
+
+        volumenFacturado: convertirNumeroDespachoSeguro(
+          lecturas?.volumen_despachar
+        ),
+
+        volumenDespachado: convertirNumeroDespachoSeguro(
+          lecturas?.volumen_ambiocom_contador
+        ),
+
+        pesoNeto: convertirNumeroDespachoSeguro(
+          lecturas?.peso_neto_bascula_ambiocom
+        ),
+
+        estadoVehiculo: lecturas?.vehiculo_rechazado || "",
+        llegadaDestino: lecturas?.llegada_destino || "",
+        puntualidadCliente: lecturas?.puntualidad_en_cliente || "",
+
+        fechaEstimadaEntrega:
+          lecturas?.fecha_estimada_entrega || "",
+
+        horaProgramada:
+          lecturas?.hora_programada ||
+          lecturas?.horaProgramada ||
+          "",
+
+        /*
+         * Se mantienen todas las lecturas originales para conservar
+         * compatibilidad con las columnas dinámicas del módulo.
+         */
+        lecturas,
+      };
+    });
+
+    const resumen = detalle.reduce(
+      (acc, item) => {
+        acc.totalDespachos += 1;
+        acc.volumenFacturado += item.volumenFacturado;
+        acc.volumenDespachado += item.volumenDespachado;
+        acc.pesoNeto += item.pesoNeto;
+
+        const estado = normalizarEstadoDespacho(
+          item.estadoVehiculo
+        );
+
+        if (estado === "EN PLANTA") {
+          acc.enPlanta += 1;
+        } else if (estado === "RECHAZADO AMBIOCOM") {
+          acc.rechazadosAmbiocom += 1;
+        } else if (estado === "APROBADO AMBIOCOM") {
+          acc.aprobadosAmbiocom += 1;
+        } else if (estado === "EN CARGUE") {
+          acc.enCargue += 1;
+        } else if (
+          estado === "EN TRANSITO" ||
+          estado === "EN TRÁNSITO"
+        ) {
+          acc.enTransito += 1;
+        } else if (estado === "EN CLIENTE") {
+          acc.enCliente += 1;
+        } else if (estado === "APROBADO POR EL CLIENTE") {
+          acc.aprobadosCliente += 1;
+        } else if (
+          estado === "APROBADO CON OBSERVACIONES"
+        ) {
+          acc.aprobadosConObservaciones += 1;
+        } else if (estado === "RECHAZADO POR CLIENTE") {
+          acc.rechazadosCliente += 1;
+        } else {
+          acc.sinEstado += 1;
+        }
+
+        const llegada = normalizarEstadoDespacho(
+          item.llegadaDestino
+        );
+
+        if (
+          llegada === "PUNTUAL" ||
+          llegada === "CUMPLE"
+        ) {
+          acc.puntualesDestino += 1;
+        } else if (
+          llegada === "RETRASADO" ||
+          llegada === "NO CUMPLE"
+        ) {
+          acc.retrasadosDestino += 1;
+        }
+
+        const puntualidadCliente = normalizarEstadoDespacho(
+          item.puntualidadCliente
+        );
+
+        if (
+          puntualidadCliente === "PUNTUAL" ||
+          puntualidadCliente === "CUMPLE"
+        ) {
+          acc.puntualesCliente += 1;
+        } else if (
+          puntualidadCliente === "RETRASADO" ||
+          puntualidadCliente === "NO CUMPLE"
+        ) {
+          acc.retrasadosCliente += 1;
+        }
+
+        return acc;
+      },
+      {
+        totalDespachos: 0,
+        volumenFacturado: 0,
+        volumenDespachado: 0,
+        pesoNeto: 0,
+
+        enPlanta: 0,
+        rechazadosAmbiocom: 0,
+        aprobadosAmbiocom: 0,
+        enCargue: 0,
+        enTransito: 0,
+        enCliente: 0,
+        aprobadosCliente: 0,
+        aprobadosConObservaciones: 0,
+        rechazadosCliente: 0,
+        sinEstado: 0,
+
+        puntualesDestino: 0,
+        retrasadosDestino: 0,
+        puntualesCliente: 0,
+        retrasadosCliente: 0,
+      }
+    );
+
+    const mapaProductos = new Map();
+    const mapaClientes = new Map();
+
+    detalle.forEach((item) => {
+      const producto =
+        normalizeText(item.producto) || "Sin definir";
+
+      const productoActual = mapaProductos.get(producto) || {
+        producto,
+        despachos: 0,
+        volumenFacturado: 0,
+        volumenDespachado: 0,
+        pesoNeto: 0,
+      };
+
+      productoActual.despachos += 1;
+      productoActual.volumenFacturado += item.volumenFacturado;
+      productoActual.volumenDespachado += item.volumenDespachado;
+      productoActual.pesoNeto += item.pesoNeto;
+
+      mapaProductos.set(producto, productoActual);
+
+      const cliente =
+        normalizeText(item.cliente) || "Sin definir";
+
+      const clienteActual = mapaClientes.get(cliente) || {
+        cliente,
+        despachos: 0,
+        volumenFacturado: 0,
+        volumenDespachado: 0,
+      };
+
+      clienteActual.despachos += 1;
+      clienteActual.volumenFacturado += item.volumenFacturado;
+      clienteActual.volumenDespachado += item.volumenDespachado;
+
+      mapaClientes.set(cliente, clienteActual);
+    });
+
+    const porProducto = Array.from(
+      mapaProductos.values()
+    ).sort((a, b) =>
+      a.producto.localeCompare(b.producto, "es")
+    );
+
+    const porCliente = Array.from(
+      mapaClientes.values()
+    ).sort((a, b) =>
+      a.cliente.localeCompare(b.cliente, "es")
+    );
+
+    const exists = detalle.length > 0;
+
+    return res.status(200).json({
+      success: true,
+      exists,
+      message: exists
+        ? "Despachos de alcohol consultados correctamente."
+        : "No se encontraron despachos de alcohol para la fecha consultada.",
+      data: {
+        fecha,
+        exists,
+        sinDatos: !exists,
+        mensaje: exists
+          ? "Despachos de alcohol consultados correctamente."
+          : "No se encontraron despachos de alcohol para la fecha consultada.",
+        totalRegistros: detalle.length,
+        resumen,
+        porProducto,
+        porCliente,
+        detalle,
+      },
+    });
+  } catch (error) {
+    console.error(
+      "Error consultando despachos de alcohol para bitácora:",
+      error
+    );
+
+    return res.status(500).json({
+      success: false,
+      exists: false,
+      message:
+        "Error al consultar los despachos de alcohol para la bitácora.",
+      error: error.message,
+    });
+  }
+};
+
 /* ================= ACTUALIZAR SOLO ESTADO VEHÍCULO ================= */
 export const actualizarEstadoVehiculoDespachoAlcohol = async (req, res) => {
   try {
