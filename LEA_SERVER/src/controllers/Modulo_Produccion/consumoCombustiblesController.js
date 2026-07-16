@@ -961,9 +961,14 @@ export const deleteConsumoCombustibleByFecha = async (req, res) => {
 
 export const getResumenConsumosCombustiblesParaBitacora = async (req, res) => {
   try {
-    const fecha = normalizeDate(req.params.fecha);
+    /*
+     * El frontend envía la fecha de la bitácora como límite superior.
+     * Se busca el registro activo más próximo estrictamente anterior,
+     * aunque no corresponda al día calendario inmediatamente anterior.
+     */
+    const fechaBitacora = normalizeDate(req.params.fecha);
 
-    if (!isValidIsoDate(fecha)) {
+    if (!isValidIsoDate(fechaBitacora)) {
       return res.status(400).json({
         ok: false,
         message: "Fecha inválida. Usa yyyy-mm-dd.",
@@ -971,12 +976,23 @@ export const getResumenConsumosCombustiblesParaBitacora = async (req, res) => {
     }
 
     const [registro, materiales] = await Promise.all([
-      ConsumoCombustibles.findOne({ fecha, activo: true }).lean({
-        virtuals: true,
-        flattenMaps: true,
-      }),
-      MaterialCombustible.find({ active: { $ne: false } })
-        .sort({ material: 1, name: 1 })
+      ConsumoCombustibles.findOne({
+        activo: true,
+        fecha: { $lt: fechaBitacora },
+      })
+        .sort({ fecha: -1 })
+        .lean({
+          virtuals: true,
+          flattenMaps: true,
+        }),
+
+      MaterialCombustible.find({
+        active: { $ne: false },
+      })
+        .sort({
+          material: 1,
+          name: 1,
+        })
         .lean(),
     ]);
 
@@ -985,139 +1001,650 @@ export const getResumenConsumosCombustiblesParaBitacora = async (req, res) => {
         ok: true,
         exists: false,
         message:
-          "No se encontraron consumos de combustibles para la fecha consultada.",
+          "No existe un registro de consumos anterior a la fecha de la bitácora.",
+
         data: {
-          fecha,
+          fecha: null,
+          fechaBitacora,
+          fechaSolicitada: fechaBitacora,
+          fechaCierreInventario: null,
+
           resumen: {
-            carbon: { consumoTon: 0, ajusteTon: 0, paladasCV: 0, paladasCN: 0 },
-            madera: { consumoTon: 0, ajusteTon: 0, paladasCV: 0, paladasCN: 0 },
-            bagazo: { consumoTon: 0, ajusteTon: 0, paladasCV: 0, paladasCN: 0 },
-            total: { consumoTon: 0, ajusteTon: 0, paladasCV: 0, paladasCN: 0 },
+            carbon: {
+              consumoTon: 0,
+              ajusteTon: 0,
+              paladasCV: 0,
+              paladasCN: 0,
+              porcentajeMezcla: null,
+              porcentajeMezclaPct: null,
+              inventarioFinalPatioTon: null,
+              participacionTolvasTon: null,
+              inventarioFinalTon: null,
+              stockTotalTon: null,
+            },
+
+            madera: {
+              consumoTon: 0,
+              ajusteTon: 0,
+              paladasCV: 0,
+              paladasCN: 0,
+              porcentajeMezcla: null,
+              porcentajeMezclaPct: null,
+              inventarioFinalPatioTon: null,
+              participacionTolvasTon: null,
+              inventarioFinalTon: null,
+              stockTotalTon: null,
+            },
+
+            bagazo: {
+              consumoTon: 0,
+              ajusteTon: 0,
+              paladasCV: 0,
+              paladasCN: 0,
+              porcentajeMezcla: null,
+              porcentajeMezclaPct: null,
+              inventarioFinalPatioTon: null,
+              participacionTolvasTon: null,
+              inventarioFinalTon: null,
+              stockTotalTon: null,
+            },
+
+            total: {
+              consumoTon: 0,
+              ajusteTon: 0,
+              paladasCV: 0,
+              paladasCN: 0,
+              inventarioFinalPatioTon: null,
+              inventarioFinalTon: null,
+              stockTotalTon: null,
+            },
           },
+
+          stock: {
+            carbon: {
+              patio: null,
+              tolvas: null,
+              total: null,
+            },
+
+            madera: {
+              patio: null,
+              tolvas: null,
+              total: null,
+            },
+
+            bagazo: {
+              patio: null,
+              tolvas: null,
+              total: null,
+            },
+
+            general: null,
+          },
+
+          totales: {},
           materiales: [],
-          tolvas: { principal: 0, auxiliares: 0, total: 0 },
+
+          tolvas: {
+            principal: 0,
+            auxiliares: 0,
+            total: 0,
+            carbon: null,
+            madera: null,
+            bagazo: null,
+          },
+
           observacion: "",
         },
       });
     }
 
     const resumenPorMaterial = {
-      Carbón: { consumoTon: 0, ajusteTon: 0, paladasCV: 0, paladasCN: 0 },
-      Madera: { consumoTon: 0, ajusteTon: 0, paladasCV: 0, paladasCN: 0 },
-      Bagazo: { consumoTon: 0, ajusteTon: 0, paladasCV: 0, paladasCN: 0 },
+      Carbón: {
+        consumoTon: 0,
+        ajusteTon: 0,
+        paladasCV: 0,
+        paladasCN: 0,
+      },
+
+      Madera: {
+        consumoTon: 0,
+        ajusteTon: 0,
+        paladasCV: 0,
+        paladasCN: 0,
+      },
+
+      Bagazo: {
+        consumoTon: 0,
+        ajusteTon: 0,
+        paladasCV: 0,
+        paladasCN: 0,
+      },
     };
 
     const carbons = registro.carbons || {};
 
     const detalleMateriales = materiales.map((materialItem) => {
       const materialId = getMaterialCanonicalId(materialItem);
+
       const movimiento =
-        carbons[materialId] || carbons[String(materialItem._id || "")] || {};
-      const material = normalizeMaterialName(materialItem.material);
-      const paladasCV = toNumber(movimiento.paladasCV);
-      const paladasCN = toNumber(movimiento.paladasCN);
-      const weightCV = toNumber(materialItem.weightCV);
-      const weightCN = toNumber(materialItem.weightCN);
-      const ajusteTon = toNumber(movimiento.ajuste);
-      const consumoCalculado = paladasCV * weightCV + paladasCN * weightCN;
+        carbons[materialId] ||
+        carbons[String(materialItem._id || "")] ||
+        {};
+
+      const material = normalizeMaterialName(
+        materialItem.material
+      );
+
+      const paladasCV = toNumber(
+        movimiento.paladasCV
+      );
+
+      const paladasCN = toNumber(
+        movimiento.paladasCN
+      );
+
+      const weightCV = toNumber(
+        materialItem.weightCV
+      );
+
+      const weightCN = toNumber(
+        materialItem.weightCN
+      );
+
+      const ajusteTon = toNumber(
+        movimiento.ajuste
+      );
+
+      const consumoCalculado =
+        paladasCV * weightCV +
+        paladasCN * weightCN;
+
       const consumoTon =
-        toNumberOrNull(movimiento.consumo) ?? consumoCalculado;
+        toNumberOrNull(
+          movimiento.consumo
+        ) ?? consumoCalculado;
+
       const finalTon =
-        toNumberOrNull(movimiento.final) ??
-        toNumber(movimiento.inicial) +
-          toNumber(movimiento.entrada) +
+        toNumberOrNull(
+          movimiento.final
+        ) ??
+        toNumber(
+          movimiento.inicial
+        ) +
+          toNumber(
+            movimiento.entrada
+          ) +
           ajusteTon -
           consumoTon;
 
-      resumenPorMaterial[material].consumoTon += consumoTon;
-      resumenPorMaterial[material].ajusteTon += ajusteTon;
-      resumenPorMaterial[material].paladasCV += paladasCV;
-      resumenPorMaterial[material].paladasCN += paladasCN;
+      resumenPorMaterial[
+        material
+      ].consumoTon += consumoTon;
+
+      resumenPorMaterial[
+        material
+      ].ajusteTon += ajusteTon;
+
+      resumenPorMaterial[
+        material
+      ].paladasCV += paladasCV;
+
+      resumenPorMaterial[
+        material
+      ].paladasCN += paladasCN;
 
       return {
         id: materialId,
         material,
-        proveedor: materialItem.name || materialItem.nombre || "Material sin nombre",
-        weightCV: roundNumber(weightCV),
-        weightCN: roundNumber(weightCN),
-        paladasCV: roundNumber(paladasCV, 2),
-        paladasCN: roundNumber(paladasCN, 2),
-        consumoTon: roundNumber(consumoTon, 4),
-        ajusteTon: roundNumber(ajusteTon, 4),
-        inicialTon: roundNumber(toNumber(movimiento.inicial), 4),
-        entradaTon: roundNumber(toNumber(movimiento.entrada), 4),
-        finalEstimadoTon: roundNumber(finalTon, 4),
+
+        proveedor:
+          materialItem.name ||
+          materialItem.nombre ||
+          "Material sin nombre",
+
+        weightCV: roundNumber(
+          weightCV
+        ),
+
+        weightCN: roundNumber(
+          weightCN
+        ),
+
+        paladasCV: roundNumber(
+          paladasCV,
+          2
+        ),
+
+        paladasCN: roundNumber(
+          paladasCN,
+          2
+        ),
+
+        consumoTon: roundNumber(
+          consumoTon,
+          4
+        ),
+
+        ajusteTon: roundNumber(
+          ajusteTon,
+          4
+        ),
+
+        inicialTon: roundNumber(
+          toNumber(
+            movimiento.inicial
+          ),
+          4
+        ),
+
+        entradaTon: roundNumber(
+          toNumber(
+            movimiento.entrada
+          ),
+          4
+        ),
+
+        finalEstimadoTon: roundNumber(
+          finalTon,
+          4
+        ),
       };
     });
 
-    const materialesConMovimiento = detalleMateriales.filter(
-      (item) =>
-        item.paladasCV !== 0 ||
-        item.paladasCN !== 0 ||
-        item.consumoTon !== 0 ||
-        item.ajusteTon !== 0 ||
-        item.entradaTon !== 0 ||
-        item.inicialTon !== 0 ||
-        item.finalEstimadoTon !== 0
-    );
+    const materialesConMovimiento =
+      detalleMateriales.filter(
+        (item) =>
+          item.paladasCV !== 0 ||
+          item.paladasCN !== 0 ||
+          item.consumoTon !== 0 ||
+          item.ajusteTon !== 0 ||
+          item.entradaTon !== 0 ||
+          item.inicialTon !== 0 ||
+          item.finalEstimadoTon !== 0
+      );
 
+    /*
+     * Se conserva el cálculo de consumo que ya funcionaba.
+     */
     const total = {
       consumoTon:
         resumenPorMaterial.Carbón.consumoTon +
         resumenPorMaterial.Madera.consumoTon +
         resumenPorMaterial.Bagazo.consumoTon,
+
       ajusteTon:
         resumenPorMaterial.Carbón.ajusteTon +
         resumenPorMaterial.Madera.ajusteTon +
         resumenPorMaterial.Bagazo.ajusteTon,
+
       paladasCV:
         resumenPorMaterial.Carbón.paladasCV +
         resumenPorMaterial.Madera.paladasCV +
         resumenPorMaterial.Bagazo.paladasCV,
+
       paladasCN:
         resumenPorMaterial.Carbón.paladasCN +
         resumenPorMaterial.Madera.paladasCN +
         resumenPorMaterial.Bagazo.paladasCN,
     };
 
-    const mapResumen = (item) => ({
-      consumoTon: roundNumber(item.consumoTon, 4),
-      ajusteTon: roundNumber(item.ajusteTon, 4),
-      paladasCV: roundNumber(item.paladasCV, 2),
-      paladasCN: roundNumber(item.paladasCN, 2),
+    /*
+     * Los inventarios y la distribución de las tolvas ya están calculados
+     * y persistidos en registro.totales. No se vuelven a calcular aquí.
+     */
+    const totales = normalizeTotals(
+      registro.totales || {}
+    );
+
+    const inventario = {
+      carbon: {
+        patio: toNumberOrNull(
+          totales.finalCarbonPatio
+        ),
+
+        tolvas: toNumberOrNull(
+          totales.tolvaCarbon
+        ),
+
+        total: toNumberOrNull(
+          totales.finalCarbon
+        ),
+
+        porcentajePct: toNumberOrNull(
+          totales.porcentajeCarbon
+        ),
+      },
+
+      madera: {
+        patio: toNumberOrNull(
+          totales.finalMaderaPatio
+        ),
+
+        tolvas: toNumberOrNull(
+          totales.tolvaMadera
+        ),
+
+        total: toNumberOrNull(
+          totales.finalMadera
+        ),
+
+        porcentajePct: toNumberOrNull(
+          totales.porcentajeMadera
+        ),
+      },
+
+      bagazo: {
+        patio: toNumberOrNull(
+          totales.finalBagazoPatio
+        ),
+
+        tolvas: toNumberOrNull(
+          totales.tolvaBagazo
+        ),
+
+        total: toNumberOrNull(
+          totales.finalBagazo
+        ),
+
+        porcentajePct: toNumberOrNull(
+          totales.porcentajeBagazo
+        ),
+      },
+
+      patioGeneral: toNumberOrNull(
+        totales.finalPatio
+      ),
+
+      totalGeneral: toNumberOrNull(
+        totales.final
+      ),
+    };
+
+    const mapResumen = (
+      item,
+      inventarioMaterial
+    ) => ({
+      consumoTon: roundNumber(
+        item.consumoTon,
+        4
+      ),
+
+      ajusteTon: roundNumber(
+        item.ajusteTon,
+        4
+      ),
+
+      paladasCV: roundNumber(
+        item.paladasCV,
+        2
+      ),
+
+      paladasCN: roundNumber(
+        item.paladasCN,
+        2
+      ),
+
+      porcentajeMezcla:
+        inventarioMaterial.porcentajePct === null
+          ? null
+          : roundNumber(
+              inventarioMaterial.porcentajePct / 100,
+              6
+            ),
+
+      porcentajeMezclaPct:
+        inventarioMaterial.porcentajePct === null
+          ? null
+          : roundNumber(
+              inventarioMaterial.porcentajePct,
+              4
+            ),
+
+      inventarioFinalPatioTon:
+        inventarioMaterial.patio === null
+          ? null
+          : roundNumber(
+              inventarioMaterial.patio,
+              4
+            ),
+
+      participacionTolvasTon:
+        inventarioMaterial.tolvas === null
+          ? null
+          : roundNumber(
+              inventarioMaterial.tolvas,
+              4
+            ),
+
+      inventarioFinalTon:
+        inventarioMaterial.total === null
+          ? null
+          : roundNumber(
+              inventarioMaterial.total,
+              4
+            ),
+
+      stockTotalTon:
+        inventarioMaterial.total === null
+          ? null
+          : roundNumber(
+              inventarioMaterial.total,
+              4
+            ),
     });
 
-    const tolvaPrincipal = toNumber(registro.tolvaPrincipal);
-    const tolvasAuxiliares = toNumber(registro.tolvasAuxiliares);
+    const resumenCarbon = mapResumen(
+      resumenPorMaterial.Carbón,
+      inventario.carbon
+    );
+
+    const resumenMadera = mapResumen(
+      resumenPorMaterial.Madera,
+      inventario.madera
+    );
+
+    const resumenBagazo = mapResumen(
+      resumenPorMaterial.Bagazo,
+      inventario.bagazo
+    );
+
+    const resumenTotal = {
+      consumoTon: roundNumber(
+        total.consumoTon,
+        4
+      ),
+
+      ajusteTon: roundNumber(
+        total.ajusteTon,
+        4
+      ),
+
+      paladasCV: roundNumber(
+        total.paladasCV,
+        2
+      ),
+
+      paladasCN: roundNumber(
+        total.paladasCN,
+        2
+      ),
+
+      inventarioFinalPatioTon:
+        inventario.patioGeneral === null
+          ? null
+          : roundNumber(
+              inventario.patioGeneral,
+              4
+            ),
+
+      inventarioFinalTon:
+        inventario.totalGeneral === null
+          ? null
+          : roundNumber(
+              inventario.totalGeneral,
+              4
+            ),
+
+      stockTotalTon:
+        inventario.totalGeneral === null
+          ? null
+          : roundNumber(
+              inventario.totalGeneral,
+              4
+            ),
+    };
+
+    const tolvaPrincipal = toNumber(
+      registro.tolvaPrincipal
+    );
+
+    const tolvasAuxiliares = toNumber(
+      registro.tolvasAuxiliares
+    );
+
+    const totalTolvasPersistido =
+      toNumberOrNull(
+        totales.tolvas
+      );
+
+    const totalTolvas =
+      totalTolvasPersistido ??
+      tolvaPrincipal + tolvasAuxiliares;
 
     return res.status(200).json({
       ok: true,
       exists: true,
+
       message:
-        "Resumen de consumos de combustibles consultado correctamente para la bitácora.",
+        `Se tomó el último cierre disponible anterior a ${fechaBitacora}: ${registro.fecha}.`,
+
       data: {
-        fecha,
+        fecha: registro.fecha,
+        fechaBitacora,
+        fechaSolicitada: fechaBitacora,
+        fechaCierreInventario: registro.fecha,
+
         resumen: {
-          carbon: mapResumen(resumenPorMaterial.Carbón),
-          madera: mapResumen(resumenPorMaterial.Madera),
-          bagazo: mapResumen(resumenPorMaterial.Bagazo),
-          total: mapResumen(total),
+          carbon: resumenCarbon,
+          madera: resumenMadera,
+          bagazo: resumenBagazo,
+          total: resumenTotal,
+
+          /*
+           * Alias de compatibilidad para el generador del PDF.
+           */
+          inventarioFinalCarbonPatio:
+            resumenCarbon.inventarioFinalPatioTon,
+
+          inventarioFinalMaderaPatio:
+            resumenMadera.inventarioFinalPatioTon,
+
+          inventarioFinalBagazoPatio:
+            resumenBagazo.inventarioFinalPatioTon,
+
+          inventarioFinalCarbon:
+            resumenCarbon.inventarioFinalTon,
+
+          inventarioFinalMadera:
+            resumenMadera.inventarioFinalTon,
+
+          inventarioFinalBagazo:
+            resumenBagazo.inventarioFinalTon,
+
+          inventarioFinal:
+            resumenTotal.inventarioFinalTon,
         },
-        materiales: materialesConMovimiento,
+
+        stock: {
+          carbon: {
+            patio:
+              resumenCarbon.inventarioFinalPatioTon,
+
+            tolvas:
+              resumenCarbon.participacionTolvasTon,
+
+            total:
+              resumenCarbon.inventarioFinalTon,
+          },
+
+          madera: {
+            patio:
+              resumenMadera.inventarioFinalPatioTon,
+
+            tolvas:
+              resumenMadera.participacionTolvasTon,
+
+            total:
+              resumenMadera.inventarioFinalTon,
+          },
+
+          bagazo: {
+            patio:
+              resumenBagazo.inventarioFinalPatioTon,
+
+            tolvas:
+              resumenBagazo.participacionTolvasTon,
+
+            total:
+              resumenBagazo.inventarioFinalTon,
+          },
+
+          general:
+            resumenTotal.inventarioFinalTon,
+        },
+
+        /*
+         * Se entrega el mismo objeto persistido que usa el módulo principal.
+         * Aquí están finalCarbon, finalMadera, final, tolvaCarbon, etc.
+         */
+        totales,
+
+        materiales:
+          materialesConMovimiento,
+
         tolvas: {
-          principal: roundNumber(tolvaPrincipal, 4),
-          auxiliares: roundNumber(tolvasAuxiliares, 4),
-          total: roundNumber(tolvaPrincipal + tolvasAuxiliares, 4),
+          principal: roundNumber(
+            tolvaPrincipal,
+            4
+          ),
+
+          auxiliares: roundNumber(
+            tolvasAuxiliares,
+            4
+          ),
+
+          total: roundNumber(
+            totalTolvas,
+            4
+          ),
+
+          carbon:
+            resumenCarbon.participacionTolvasTon,
+
+          madera:
+            resumenMadera.participacionTolvasTon,
+
+          bagazo:
+            resumenBagazo.participacionTolvasTon,
         },
-        observacion: registro.observacion || "",
+
+        observacion:
+          registro.observacion || "",
       },
     });
   } catch (error) {
-    console.error("Error consultando resumen de consumos para bitácora:", error);
+    console.error(
+      "Error consultando resumen de consumos para bitácora:",
+      error
+    );
+
     return res.status(500).json({
       ok: false,
+
       message:
         "Error consultando el resumen de consumos de combustibles para la bitácora.",
+
       error: error.message,
     });
   }
