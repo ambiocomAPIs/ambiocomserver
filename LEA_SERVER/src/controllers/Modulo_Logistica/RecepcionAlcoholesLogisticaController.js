@@ -42,17 +42,94 @@ export const crearRecepcionAlcohol = async (req, res) => {
   }
 };
 
+// export const obtenerRecepcionAlcohol = async (req, res) => {
+//   try {
+//     const mediciones = await ModelRecepcionAlcohol.find().sort({
+//       createdAt: 1,
+//     });
+
+//     res.json(mediciones);
+//   } catch (error) {
+//     res.status(500).json({
+//       message: "Error al obtener los ingresos de carbon y madera",
+//       error: error.message,
+//     });
+//   }
+// };
+
 /* ================= LISTAR ================= */
 export const obtenerRecepcionAlcohol = async (req, res) => {
   try {
-    const mediciones = await ModelRecepcionAlcohol.find().sort({
-      createdAt: 1,
-    });
 
-    res.json(mediciones);
+    const formatearFechaLocal = (fecha) => {
+      const year = fecha.getFullYear();
+      const month = String(fecha.getMonth() + 1).padStart(2, "0");
+      const day = String(fecha.getDate()).padStart(2, "0");
+
+      return `${year}-${month}-${day}`;
+    };
+
+    const hoy = new Date();
+
+    const fechaDesdeDefault = new Date(
+      hoy.getFullYear(),
+      hoy.getMonth() - 3,
+      1
+    );
+
+    const desde = String(
+      req.query.desde ||
+        formatearFechaLocal(fechaDesdeDefault)
+    ).trim();
+
+    const hasta = String(
+      req.query.hasta ||
+        formatearFechaLocal(hoy)
+    ).trim();
+
+    const formatoFechaISO = /^\d{4}-\d{2}-\d{2}$/;
+
+    if (
+      !formatoFechaISO.test(desde) ||
+      !formatoFechaISO.test(hasta)
+    ) {
+      return res.status(400).json({
+        message:
+          "Las fechas deben tener el formato YYYY-MM-DD.",
+      });
+    }
+
+    if (desde > hasta) {
+      return res.status(400).json({
+        message:
+          "La fecha inicial no puede ser posterior a la fecha final.",
+      });
+    }
+
+    const filtro = {
+      fecha: {
+        $gte: desde,
+        $lte: hasta,
+      },
+    };
+
+    const mediciones = await ModelRecepcionAlcohol
+      .find(filtro)
+      .sort({
+        createdAt: 1,
+      })
+      .lean();
+
+    return res.status(200).json(mediciones);
   } catch (error) {
-    res.status(500).json({
-      message: "Error al obtener los ingresos de carbon y madera",
+    console.error(
+      "Error obteniendo recepciones de alcohol:",
+      error
+    );
+
+    return res.status(500).json({
+      message:
+        "Error al obtener las recepciones de alcohol",
       error: error.message,
     });
   }
