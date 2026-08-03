@@ -26,51 +26,52 @@ const NiveltanquesscadaSchema = new mongoose.Schema(
       type: Number,
       default: null,
     },
-
+    
+    LT102B: {
+      type: Number,
+      default: null,
+    },
+    
     LT102A: {
       type: Number,
       default: null,
     },
 
-    LT102B: {
-      type: Number,
-      default: null,
-    },
 
-    LT402A: {
-      type: Number,
-      default: null,
-    },
+    // LT402A: {
+    //   type: Number,
+    //   default: null,
+    // },
 
-    LT402B: {
-      type: Number,
-      default: null,
-    },
+    // LT402B: {
+    //   type: Number,
+    //   default: null,
+    // },
 
-    LT805: {
-      type: Number,
-      default: null,
-    },
+    // LT805: {
+    //   type: Number,
+    //   default: null,
+    // },
 
-    LT806: {
-      type: Number,
-      default: null,
-    },
+    // LT806: {
+    //   type: Number,
+    //   default: null,
+    // },
 
-    LT807: {
-      type: Number,
-      default: null,
-    },
+    // LT807: {
+    //   type: Number,
+    //   default: null,
+    // },
 
-    LT808: {
-      type: Number,
-      default: null,
-    },
+    // LT808: {
+    //   type: Number,
+    //   default: null,
+    // },
 
-    LT300A: {
-      type: Number,
-      default: null,
-    },
+    // LT300A: {
+    //   type: Number,
+    //   default: null,
+    // },
 
     origen: {
       type: String,
