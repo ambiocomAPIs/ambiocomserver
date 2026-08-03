@@ -11,13 +11,13 @@ export const crearNivel = async (req, res) => {
       LT801B,
       LT102A,
       LT102B,
-      // LT402A,
-      // LT402B,
-      // LT805,
-      // LT806,
-      // LT807,
-      // LT808,
-      // LT300A,
+      LT402A,
+      LT402B,
+      LT805,
+      LT806,
+      LT807,
+      LT808,
+      LT300A,
     } = req.body;
 
     if (!fecha || !hora) {
@@ -35,13 +35,13 @@ export const crearNivel = async (req, res) => {
       LT801B,
       LT102B,
       LT102A,
-      // LT402A,
-      // LT402B,
-      // LT805,
-      // LT806,
-      // LT807,
-      // LT808,
-      // LT300A,
+      LT402A,
+      LT402B,
+      LT805,
+      LT806,
+      LT807,
+      LT808,
+      LT300A,
     });
 
     return res.status(201).json({
