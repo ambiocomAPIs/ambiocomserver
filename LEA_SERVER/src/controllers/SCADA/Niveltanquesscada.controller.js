@@ -3,7 +3,22 @@ import Nivel from "../../models/SCADA/NivelesTanqueScada.model.js";
 // Crear registro desde AVEVA Edge
 export const crearNivel = async (req, res) => {
   try {
-    const { fecha, hora, LT650, LT801A, LT801B, LT102B, LT102A } = req.body;
+    const {
+      fecha,
+      hora,
+      LT650,
+      LT801A,
+      LT801B,
+      LT102A,
+      LT102B,
+      LT402A,
+      LT402B,
+      LT805,
+      LT806,
+      LT807,
+      LT808,
+      LT300A,
+    } = req.body;
 
     if (!fecha || !hora) {
       return res.status(400).json({
@@ -18,8 +33,15 @@ export const crearNivel = async (req, res) => {
       LT650,
       LT801A,
       LT801B,
-      LT102B,
       LT102A,
+      LT102B,
+      LT402A,
+      LT402B,
+      LT805,
+      LT806,
+      LT807,
+      LT808,
+      LT300A,
     });
 
     return res.status(201).json({
@@ -75,6 +97,20 @@ export const obtenerNivelesPorFecha = async (req, res) => {
 
     const inicio = new Date(fechaInicio);
     const fin = new Date(fechaFin);
+
+    if (Number.isNaN(inicio.getTime()) || Number.isNaN(fin.getTime())) {
+      return res.status(400).json({
+        ok: false,
+        message: "fechaInicio o fechaFin no tienen un formato válido",
+      });
+    }
+
+    if (inicio > fin) {
+      return res.status(400).json({
+        ok: false,
+        message: "fechaInicio no puede ser posterior a fechaFin",
+      });
+    }
 
     const niveles = await Nivel.find({
       createdAt: {
