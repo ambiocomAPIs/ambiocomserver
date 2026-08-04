@@ -26,17 +26,16 @@ const NiveltanquesscadaSchema = new mongoose.Schema(
       type: Number,
       default: null,
     },
-    
-    LT102B: {
-      type: Number,
-      default: null,
-    },
 
     LT102A: {
       type: Number,
       default: null,
     },
 
+    LT102B: {
+      type: Number,
+      default: null,
+    },
 
     LT402A: {
       type: Number,
