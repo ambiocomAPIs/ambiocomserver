@@ -1,7 +1,8 @@
 import mongoose from "mongoose";
 
 const ISO_DATE_REGEX = /^\d{4}-\d{2}-\d{2}$/;
-const ISO_DATETIME_REGEX = /^\d{4}-\d{2}-\d{2}\s\d{2}:\d{2}$/;
+const ISO_DATETIME_REGEX =
+  /^\d{4}-\d{2}-\d{2}\s\d{2}:\d{2}$/;
 
 const ProgramacionDespachoSchema = new mongoose.Schema(
   {
@@ -9,17 +10,25 @@ const ProgramacionDespachoSchema = new mongoose.Schema(
       type: String,
       required: [true, "La fecha es obligatoria."],
       trim: true,
-      match: [ISO_DATE_REGEX, 'La fecha debe tener formato "YYYY-MM-DD".'],
+      match: [
+        ISO_DATE_REGEX,
+        'La fecha debe tener formato "YYYY-MM-DD".',
+      ],
     },
 
     fechaEstimadaEntrega: {
       type: String,
-      required: [true, "La fecha estimada de entrega es obligatoria."],
+      required: [
+        true,
+        "La fecha estimada de entrega es obligatoria.",
+      ],
       trim: true,
       default: "NA",
       validate: {
         validator: function (value) {
-          const v = String(value ?? "").trim().toUpperCase();
+          const v = String(value ?? "")
+            .trim()
+            .toUpperCase();
 
           if (v === "NA") return true;
 
@@ -68,8 +77,9 @@ const ProgramacionDespachoSchema = new mongoose.Schema(
 
     destino: {
       type: String,
-      required: [true, "El destino es obligatorio."],
+      // required: [true, "El destino es obligatorio."],
       trim: true,
+      default: "",
     },
 
     producto: {
@@ -82,6 +92,39 @@ const ProgramacionDespachoSchema = new mongoose.Schema(
       type: Number,
       required: [true, "La cantidad es obligatoria."],
       min: [1, "La cantidad debe ser mayor a 0."],
+    },
+
+    // NUEVO: estado operativo de la programación
+    estado: {
+      type: String,
+      trim: true,
+      uppercase: true,
+      default: "PENDIENTE",
+      enum: {
+        values: [
+          "PENDIENTE",
+          "CONFIRMADO",
+          "EN PLANTA",
+          "EN CARGUE",
+          "DESPACHADO",
+          "EN TRÁNSITO",
+          "EN CLIENTE",
+          "ENTREGADO",
+          "CANCELADO",
+        ],
+        message: "El estado seleccionado no es válido.",
+      },
+    },
+
+    // NUEVO: observaciones asociadas al estado
+    observacionesEstado: {
+      type: String,
+      trim: true,
+      default: "",
+      maxlength: [
+        1000,
+        "Las observaciones no pueden superar los 1000 caracteres.",
+      ],
     },
 
     cumplido: {
@@ -97,11 +140,18 @@ const ProgramacionDespachoSchema = new mongoose.Schema(
 
 // Índices útiles
 ProgramacionDespachoSchema.index({ fecha: 1 });
-ProgramacionDespachoSchema.index({ fechaEstimadaEntrega: 1 });
+ProgramacionDespachoSchema.index({
+  fechaEstimadaEntrega: 1,
+});
 ProgramacionDespachoSchema.index({ cliente: 1 });
 ProgramacionDespachoSchema.index({ producto: 1 });
-ProgramacionDespachoSchema.index({ transportadora: 1 });
+ProgramacionDespachoSchema.index({
+  transportadora: 1,
+});
 ProgramacionDespachoSchema.index({ destino: 1 });
+
+// NUEVO: útil para futuros filtros por estado
+ProgramacionDespachoSchema.index({ estado: 1 });
 
 // Normalización adicional
 ProgramacionDespachoSchema.pre("save", function (next) {
@@ -114,22 +164,43 @@ ProgramacionDespachoSchema.pre("save", function (next) {
   this.fecha = normalize(this.fecha);
 
   this.fechaEstimadaEntrega =
-    normalize(this.fechaEstimadaEntrega).toUpperCase() || "NA";
+    normalize(this.fechaEstimadaEntrega).toUpperCase() ||
+    "NA";
 
-  this.horaProgramada = normalize(this.horaProgramada);
+  this.horaProgramada = normalize(
+    this.horaProgramada
+  );
+
   this.placa = normalize(this.placa);
   this.trailer = normalize(this.trailer);
   this.conductor = normalize(this.conductor);
-  this.transportadora = normalize(this.transportadora);
+
+  this.transportadora = normalize(
+    this.transportadora
+  );
+
   this.cliente = normalize(this.cliente);
   this.destino = normalize(this.destino);
   this.producto = normalize(this.producto);
+
+  // NUEVO
+  this.estado =
+    normalize(this.estado).toUpperCase() ||
+    "PENDIENTE";
+
+  // NUEVO
+  this.observacionesEstado = normalize(
+    this.observacionesEstado
+  );
 
   next();
 });
 
 const ProgramacionDespacho =
   mongoose.models.ProgramacionDespacho ||
-  mongoose.model("ProgramacionDespacho", ProgramacionDespachoSchema);
+  mongoose.model(
+    "ProgramacionDespacho",
+    ProgramacionDespachoSchema
+  );
 
 export default ProgramacionDespacho;

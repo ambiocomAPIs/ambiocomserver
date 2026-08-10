@@ -107,14 +107,12 @@ const imageDir = path.join(__dirname, "../public/imagenes");
 fs.mkdirSync(imageDir, { recursive: true });
 
 // Middleware global CORS
-// ✅ OJO: cors no maneja bien Set aquí, mejor array
 const allowedOrigins = [
   "http://127.0.0.1:5173",
   "http://localhost:5173",
   "https://ambiocomsassgc.netlify.app",
 ];
 
-// ✅ Definición real de corsOptions (en tu código lo estabas usando pero no existía)
 const corsOptions = {
   origin: allowedOrigins,
   credentials: true,

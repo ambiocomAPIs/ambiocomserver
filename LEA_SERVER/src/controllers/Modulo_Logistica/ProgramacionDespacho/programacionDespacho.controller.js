@@ -419,3 +419,220 @@ export const updateFechaEstimadaEntregaProgramacion = async (req, res) => {
     });
   }
 };
+
+export const createProgramacionesMasivas = async (req, res) => {
+  try {
+    const registros = req.body?.registros;
+
+    if (!Array.isArray(registros)) {
+      return res.status(400).json({
+        message: 'El campo "registros" debe ser un arreglo.',
+      });
+    }
+
+    if (registros.length === 0) {
+      return res.status(400).json({
+        message: "No se recibieron registros para cargar.",
+      });
+    }
+
+    // Protección para evitar cargas excesivamente grandes.
+    if (registros.length > 1000) {
+      return res.status(400).json({
+        message: "La carga masiva permite máximo 1000 registros por archivo.",
+      });
+    }
+
+    const errores = [];
+
+    const documentos = registros.map((registro, index) => {
+      const filaExcel = index + 2;
+
+      const fecha = normalizeText(registro?.fecha);
+      const cliente = normalizeText(registro?.cliente);
+      const placa = normalizeText(registro?.placa);
+      const transportadora = normalizeText(registro?.transportadora);
+      const producto = normalizeText(registro?.producto);
+      const cantidad = Number(registro?.cantidad);
+
+      const erroresFila = [];
+
+      if (!fecha || !isValidISODate(fecha)) {
+        erroresFila.push(
+          'La fecha debe tener formato "YYYY-MM-DD" y ser válida.'
+        );
+      }
+
+      if (!cliente) {
+        erroresFila.push("El cliente es obligatorio.");
+      }
+
+      if (!placa) {
+        erroresFila.push("La placa es obligatoria para la carga masiva.");
+      }
+
+      if (!transportadora) {
+        erroresFila.push(
+          "La transportadora es obligatoria para la carga masiva."
+        );
+      }
+
+      if (!producto) {
+        erroresFila.push("El producto es obligatorio.");
+      }
+
+      if (!Number.isFinite(cantidad) || cantidad <= 0) {
+        erroresFila.push("La cantidad debe ser un número mayor a cero.");
+      }
+
+      if (erroresFila.length > 0) {
+        errores.push({
+          fila: filaExcel,
+          errores: erroresFila,
+        });
+      }
+
+      return {
+        fecha,
+        fechaEstimadaEntrega: "NA",
+        horaProgramada: "",
+        placa,
+        trailer: "",
+        conductor: "",
+        transportadora,
+        cliente,
+        destino: "",
+        producto,
+        cantidad,
+        cumplido: false,
+      };
+    });
+
+    if (errores.length > 0) {
+      return res.status(400).json({
+        message:
+          "La carga fue rechazada porque existen registros con errores.",
+        totalRegistros: registros.length,
+        totalErrores: errores.length,
+        errores,
+      });
+    }
+
+    const creados = await ProgramacionDespacho.insertMany(documentos, {
+      ordered: true,
+    });
+
+    return res.status(201).json({
+      message: "Carga masiva completada correctamente.",
+      recibidos: registros.length,
+      insertados: creados.length,
+      data: creados,
+    });
+  } catch (error) {
+    console.error("createProgramacionesMasivas error:", error);
+
+    if (error?.name === "ValidationError") {
+      const message = Object.values(error.errors ?? {})
+        .map((item) => item.message)
+        .join(" ");
+
+      return res.status(400).json({
+        message: message || "Uno o más registros contienen datos inválidos.",
+      });
+    }
+
+    return res.status(500).json({
+      message: "Error realizando la carga masiva de programaciones.",
+      error: error.message,
+    });
+  }
+};
+
+// PATCH - actualizar estado y comentario
+export const updateEstadoProgramacion = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const estado = normalizeText(req.body?.estado).toUpperCase();
+    const observacionesEstado = normalizeText(
+      req.body?.observacionesEstado
+    );
+
+    const estadosPermitidos = [
+      "PENDIENTE",
+      "CONFIRMADO",
+      "EN PLANTA",
+      "EN CARGUE",
+      "DESPACHADO",
+      "EN TRÁNSITO",
+      "EN CLIENTE",
+      "ENTREGADO",
+      "CANCELADO",
+    ];
+
+    if (!estado) {
+      return res.status(400).json({
+        message: "El estado es obligatorio.",
+      });
+    }
+
+    if (!estadosPermitidos.includes(estado)) {
+      return res.status(400).json({
+        message: "El estado seleccionado no es válido.",
+      });
+    }
+
+    if (observacionesEstado.length > 1000) {
+      return res.status(400).json({
+        message:
+          "El comentario no puede superar los 1000 caracteres.",
+      });
+    }
+
+    const updated = await ProgramacionDespacho.findByIdAndUpdate(
+      id,
+      {
+        estado,
+        observacionesEstado,
+      },
+      {
+        new: true,
+        runValidators: true,
+      }
+    );
+
+    if (!updated) {
+      return res.status(404).json({
+        message: "Programación no encontrada.",
+      });
+    }
+
+    return res.status(200).json(updated);
+  } catch (error) {
+    console.error("updateEstadoProgramacion error:", error);
+
+    if (error?.name === "CastError") {
+      return res.status(400).json({
+        message: "El ID de la programación no es válido.",
+      });
+    }
+
+    if (error?.name === "ValidationError") {
+      const message = Object.values(error.errors ?? {})
+        .map((item) => item.message)
+        .join(" ");
+
+      return res.status(400).json({
+        message:
+          message ||
+          "El estado o el comentario no son válidos.",
+      });
+    }
+
+    return res.status(500).json({
+      message:
+        "Error actualizando el estado de la programación.",
+      error: error.message,
+    });
+  }
+};

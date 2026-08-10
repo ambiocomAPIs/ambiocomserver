@@ -7,13 +7,16 @@ import {
   updateProgramacion,
   deleteProgramacion,
   updateCumplidoProgramacion,
-  updateFechaEstimadaEntregaProgramacion
+  updateFechaEstimadaEntregaProgramacion,
+  createProgramacionesMasivas,
+  updateEstadoProgramacion
 } from "../../../controllers/Modulo_Logistica/ProgramacionDespacho/programacionDespacho.controller.js";
 
 import { requireAuth, requireRole } from "../../../middlewares/auth.middleware.js";
 
 const router = Router();
 
+router.post("/carga-masiva",requireAuth,requireRole( "developer","liderlogistica", "torrecontrollogistica" ),createProgramacionesMasivas);
 router.get("/rango", requireAuth, requireRole("developer","liderlogistica","laboratorio","gerente","supervisor","auxiliarlogistica2", "torrecontrollogistica", "comercial"), getProgramacionesByRango);
 // patch para comercial, ingresar fecha estimada de llegada
 router.patch( "/:id/fecha-estimada-entrega",requireAuth, requireRole("developer", "comercial"), updateFechaEstimadaEntregaProgramacion );
@@ -23,6 +26,8 @@ router.get("/:id", requireAuth, requireRole("developer","liderlogistica","labora
 router.post("/", requireAuth, requireRole("developer","liderlogistica","laboratorio","gerente","supervisor","auxiliarlogistica2", "torrecontrollogistica"), createProgramacion);
 router.put("/:id", requireAuth, requireRole("developer","liderlogistica","laboratorio","gerente","supervisor","auxiliarlogistica2", "torrecontrollogistica"), updateProgramacion);
 router.delete("/:id",requireAuth, requireRole("developer","liderlogistica","laboratorio","gerente","supervisor","auxiliarlogistica2", "torrecontrollogistica"), deleteProgramacion);
+router.patch("/:id/estado", requireAuth, requireRole("developer", "liderlogistica", "laboratorio", "gerente", "supervisor", "auxiliarlogistica2", "torrecontrollogistica"), updateEstadoProgramacion);
 router.patch("/:id/cumplido", requireAuth, requireRole("developer","liderlogistica","laboratorio","gerente","supervisor","auxiliarlogistica2", "torrecontrollogistica"), updateCumplidoProgramacion);
+
 
 export default router;
