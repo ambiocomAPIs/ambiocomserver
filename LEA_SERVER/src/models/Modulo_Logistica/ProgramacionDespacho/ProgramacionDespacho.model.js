@@ -103,13 +103,9 @@ const ProgramacionDespachoSchema = new mongoose.Schema(
       enum: {
         values: [
           "PENDIENTE",
-          "CONFIRMADO",
-          "EN PLANTA",
-          "EN CARGUE",
-          "DESPACHADO",
-          "EN TRÁNSITO",
-          "EN CLIENTE",
-          "ENTREGADO",
+          "ADICIONAL",
+          "REPROGRAMADO CLIENTE O VENTAS",
+          "REPROGRAMADO LOGISTICA",
           "CANCELADO",
         ],
         message: "El estado seleccionado no es válido.",

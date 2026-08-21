@@ -420,6 +420,134 @@ export const updateFechaEstimadaEntregaProgramacion = async (req, res) => {
   }
 };
 
+// export const createProgramacionesMasivas = async (req, res) => {
+//   try {
+//     const registros = req.body?.registros;
+
+//     if (!Array.isArray(registros)) {
+//       return res.status(400).json({
+//         message: 'El campo "registros" debe ser un arreglo.',
+//       });
+//     }
+
+//     if (registros.length === 0) {
+//       return res.status(400).json({
+//         message: "No se recibieron registros para cargar.",
+//       });
+//     }
+
+//     // Protección para evitar cargas excesivamente grandes.
+//     if (registros.length > 1000) {
+//       return res.status(400).json({
+//         message: "La carga masiva permite máximo 1000 registros por archivo.",
+//       });
+//     }
+
+//     const errores = [];
+
+//     const documentos = registros.map((registro, index) => {
+//       const filaExcel = index + 2;
+
+//       const fecha = normalizeText(registro?.fecha);
+//       const cliente = normalizeText(registro?.cliente);
+//       const placa = normalizeText(registro?.placa);
+//       const transportadora = normalizeText(registro?.transportadora);
+//       const producto = normalizeText(registro?.producto);
+//       const cantidad = Number(registro?.cantidad);
+
+//       const erroresFila = [];
+
+//       if (!fecha || !isValidISODate(fecha)) {
+//         erroresFila.push(
+//           'La fecha debe tener formato "YYYY-MM-DD" y ser válida.'
+//         );
+//       }
+
+//       if (!cliente) {
+//         erroresFila.push("El cliente es obligatorio.");
+//       }
+
+//       if (!placa) {
+//         erroresFila.push("La placa es obligatoria para la carga masiva.");
+//       }
+
+//       if (!transportadora) {
+//         erroresFila.push(
+//           "La transportadora es obligatoria para la carga masiva."
+//         );
+//       }
+
+//       if (!producto) {
+//         erroresFila.push("El producto es obligatorio.");
+//       }
+
+//       if (!Number.isFinite(cantidad) || cantidad <= 0) {
+//         erroresFila.push("La cantidad debe ser un número mayor a cero.");
+//       }
+
+//       if (erroresFila.length > 0) {
+//         errores.push({
+//           fila: filaExcel,
+//           errores: erroresFila,
+//         });
+//       }
+
+//       return {
+//         fecha,
+//         fechaEstimadaEntrega: "NA",
+//         horaProgramada: "",
+//         placa,
+//         trailer: "",
+//         conductor: "",
+//         transportadora,
+//         cliente,
+//         destino: "",
+//         producto,
+//         cantidad,
+//         cumplido: false,
+//       };
+//     });
+
+//     if (errores.length > 0) {
+//       return res.status(400).json({
+//         message:
+//           "La carga fue rechazada porque existen registros con errores.",
+//         totalRegistros: registros.length,
+//         totalErrores: errores.length,
+//         errores,
+//       });
+//     }
+
+//     const creados = await ProgramacionDespacho.insertMany(documentos, {
+//       ordered: true,
+//     });
+
+//     return res.status(201).json({
+//       message: "Carga masiva completada correctamente.",
+//       recibidos: registros.length,
+//       insertados: creados.length,
+//       data: creados,
+//     });
+//   } catch (error) {
+//     console.error("createProgramacionesMasivas error:", error);
+
+//     if (error?.name === "ValidationError") {
+//       const message = Object.values(error.errors ?? {})
+//         .map((item) => item.message)
+//         .join(" ");
+
+//       return res.status(400).json({
+//         message: message || "Uno o más registros contienen datos inválidos.",
+//       });
+//     }
+
+//     return res.status(500).json({
+//       message: "Error realizando la carga masiva de programaciones.",
+//       error: error.message,
+//     });
+//   }
+// };
+
 export const createProgramacionesMasivas = async (req, res) => {
   try {
     const registros = req.body?.registros;
@@ -449,9 +577,21 @@ export const createProgramacionesMasivas = async (req, res) => {
       const filaExcel = index + 2;
 
       const fecha = normalizeText(registro?.fecha);
-      const cliente = normalizeText(registro?.cliente);
+
+      const fechaEstimadaEntrega = normalizeFechaEstimadaEntrega(
+        registro?.fechaEstimadaEntrega
+      );
+
+      const horaProgramada = normalizeText(registro?.horaProgramada);
+
+      // Campos operativos opcionales
       const placa = normalizeText(registro?.placa);
+      const trailer = normalizeText(registro?.trailer);
+      const conductor = normalizeText(registro?.conductor);
       const transportadora = normalizeText(registro?.transportadora);
+
+      const cliente = normalizeText(registro?.cliente);
+      const destino = normalizeText(registro?.destino);
       const producto = normalizeText(registro?.producto);
       const cantidad = Number(registro?.cantidad);
 
@@ -463,26 +603,36 @@ export const createProgramacionesMasivas = async (req, res) => {
         );
       }
 
+      if (!isValidFechaEstimadaEntrega(fechaEstimadaEntrega)) {
+        erroresFila.push(
+          'La fecha estimada de entrega debe ser "NA" o tener formato "YYYY-MM-DD HH:mm".'
+        );
+      }
+
       if (!cliente) {
         erroresFila.push("El cliente es obligatorio.");
-      }
-
-      if (!placa) {
-        erroresFila.push("La placa es obligatoria para la carga masiva.");
-      }
-
-      if (!transportadora) {
-        erroresFila.push(
-          "La transportadora es obligatoria para la carga masiva."
-        );
       }
 
       if (!producto) {
         erroresFila.push("El producto es obligatorio.");
       }
 
+      if (!destino) {
+        erroresFila.push("El destino es obligatorio.");
+      }
+
       if (!Number.isFinite(cantidad) || cantidad <= 0) {
-        erroresFila.push("La cantidad debe ser un número mayor a cero.");
+        erroresFila.push(
+          "La cantidad debe ser un número mayor a cero."
+        );
+      }
+
+      // La placa es opcional.
+      // Solo se valida si viene diligenciada.
+      if (placa && normalizePlate(placa).length < 5) {
+        erroresFila.push(
+          "La placa parece inválida (muy corta)."
+        );
       }
 
       if (erroresFila.length > 0) {
@@ -494,14 +644,14 @@ export const createProgramacionesMasivas = async (req, res) => {
 
       return {
         fecha,
-        fechaEstimadaEntrega: "NA",
-        horaProgramada: "",
+        fechaEstimadaEntrega,
+        horaProgramada,
         placa,
-        trailer: "",
-        conductor: "",
+        trailer,
+        conductor,
         transportadora,
         cliente,
-        destino: "",
+        destino,
         producto,
         cantidad,
         cumplido: false,
@@ -537,17 +687,19 @@ export const createProgramacionesMasivas = async (req, res) => {
         .join(" ");
 
       return res.status(400).json({
-        message: message || "Uno o más registros contienen datos inválidos.",
+        message:
+          message ||
+          "Uno o más registros contienen datos inválidos.",
       });
     }
 
     return res.status(500).json({
-      message: "Error realizando la carga masiva de programaciones.",
+      message:
+        "Error realizando la carga masiva de programaciones.",
       error: error.message,
     });
   }
 };
-
 // PATCH - actualizar estado y comentario
 export const updateEstadoProgramacion = async (req, res) => {
   try {
@@ -560,13 +712,9 @@ export const updateEstadoProgramacion = async (req, res) => {
 
     const estadosPermitidos = [
       "PENDIENTE",
-      "CONFIRMADO",
-      "EN PLANTA",
-      "EN CARGUE",
-      "DESPACHADO",
-      "EN TRÁNSITO",
-      "EN CLIENTE",
-      "ENTREGADO",
+      "ADICIONAL",
+      "REPROGRAMADO CLIENTE O VENTAS",
+      "REPROGRAMADO LOGISTICA",
       "CANCELADO",
     ];
 
