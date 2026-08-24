@@ -1938,3 +1938,16 @@
 [21/8/2026 13:04:07] PATCH /api/programaciondespacho/6a888d4a3bda2ba72b04f603/estado | status=200 | rol=developer | email=desarrolladores.ambiocom@ambiocom.com
 [21/8/2026 13:04:12] PATCH /api/programaciondespacho/6a888d4a3bda2ba72b04f600/estado | status=200 | rol=developer | email=desarrolladores.ambiocom@ambiocom.com
 [21/8/2026 13:11:40] PATCH /api/programaciondespacho/6a83d4af6d1da126ba714b9b/estado | status=200 | rol=developer | email=desarrolladores.ambiocom@ambiocom.com
+[24/8/2026 7:51:13] POST /api/auth/login | status=200 | rol=anonimo | email=anonimo
+[24/8/2026 10:24:22] PUT /api/ricekanban/6a887c5b460480caa9938242 | status=200 | rol=anonimo | email=anonimo
+[24/8/2026 10:25:11] PUT /api/ricekanban/6a8867de532d98360e8f2b45 | status=200 | rol=anonimo | email=anonimo
+[24/8/2026 10:25:20] PUT /api/ricekanban/6a8850e7caab1e4ddbf00b35 | status=200 | rol=anonimo | email=anonimo
+[24/8/2026 10:26:15] PUT /api/ricekanban/6a85cb844e6177648bb45886 | status=200 | rol=anonimo | email=anonimo
+[24/8/2026 10:26:33] PUT /api/ricekanban/6a884fd9caab1e4ddbf00b26 | status=200 | rol=anonimo | email=anonimo
+[24/8/2026 13:54:16] POST /api/auth/login | status=200 | rol=anonimo | email=anonimo
+[24/8/2026 13:55:28] POST /api/programaciondespacho | status=201 | rol=developer | email=desarrolladores.ambiocom@ambiocom.com
+[24/8/2026 13:57:54] PATCH /api/programaciondespacho/6a8c93a06c8c3a8b6dfdc77d/estado | status=200 | rol=developer | email=desarrolladores.ambiocom@ambiocom.com
+[24/8/2026 13:59:39] PATCH /api/programaciondespacho/6a8c93a06c8c3a8b6dfdc77d/estado | status=200 | rol=developer | email=desarrolladores.ambiocom@ambiocom.com
+[24/8/2026 14:17:53] POST /api/ricekanban | status=201 | rol=developer | email=desarrolladores.ambiocom@ambiocom.com
+[24/8/2026 14:46:22] POST /api/auth/verify-columns | status=200 | rol=anonimo | email=anonimo
+[24/8/2026 14:46:33] PUT /api/columna-despacho-alcoholes/6994ff18faabebd0e39d82f2 | status=200 | rol=anonimo | email=anonimo
