@@ -711,6 +711,7 @@ export const updateEstadoProgramacion = async (req, res) => {
     );
 
     const estadosPermitidos = [
+      "PROGRAMADO",
       "PENDIENTE",
       "ADICIONAL",
       "REPROGRAMADO CLIENTE O VENTAS",

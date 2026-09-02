@@ -99,9 +99,10 @@ const ProgramacionDespachoSchema = new mongoose.Schema(
       type: String,
       trim: true,
       uppercase: true,
-      default: "PENDIENTE",
+      default: "PROGRAMADO",
       enum: {
         values: [
+          "PROGRAMADO",
           "PENDIENTE",
           "ADICIONAL",
           "REPROGRAMADO CLIENTE O VENTAS",
