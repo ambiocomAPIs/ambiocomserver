@@ -1,6 +1,6 @@
 import mongoose from "mongoose";
 
-const TIPOS_COMBUSTIBLE = ["Carbón", "Madera"];
+const TIPOS_COMBUSTIBLE = ["Carbón", "Madera", "Bagazo"];
 const ESTADOS_SAP = ["", "Pendiente", "Reportado", "No aplica"];
 
 const toNumber = (value) => {

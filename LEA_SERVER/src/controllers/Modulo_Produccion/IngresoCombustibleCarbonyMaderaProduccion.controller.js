@@ -141,9 +141,18 @@ const validarFechaIso = (value, fieldName = "fecha") => {
 };
 
 const normalizarTipoCombustible = (value) => {
-  const raw = String(value || "").trim().toLowerCase();
+  const raw = String(value || "")
+    .trim()
+    .toLowerCase();
 
-  if (raw.includes("madera")) return "Madera";
+  if (raw.includes("madera")) {
+    return "Madera";
+  }
+
+  if (raw.includes("bagazo")) {
+    return "Bagazo";
+  }
+
   return "Carbón";
 };
 
