@@ -1986,3 +1986,8 @@
 [7/9/2026 10:07:04] PUT /api/ricekanban/6a8850e7caab1e4ddbf00b35 | status=200 | rol=developer | email=desarrolladores.ambiocom@ambiocom.com
 [7/9/2026 10:55:20] POST /api/auth/logout | status=200 | rol=anonimo | email=anonimo
 [7/9/2026 10:55:32] POST /api/auth/login | status=200 | rol=anonimo | email=anonimo
+[10/9/2026 10:00:24] POST /api/auth/login | status=200 | rol=anonimo | email=anonimo
+[10/9/2026 10:23:49] PUT /api/ricekanban/6a89b9c9b787a30b4dbffaef | status=200 | rol=developer | email=desarrolladores.ambiocom@ambiocom.com
+[10/9/2026 12:51:53] POST /api/auth/login | status=200 | rol=anonimo | email=anonimo
+[12/9/2026 13:51:55] POST /api/seed-users | status=200 | rol=anonimo | email=anonimo
+[12/9/2026 13:54:24] POST /api/seed-users | status=200 | rol=anonimo | email=anonimo

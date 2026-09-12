@@ -63,6 +63,7 @@ router.post(
   requireAuth,
   requireRole(
     "developer",
+    "usuariobascula",
     "liderlogistica",
     "laboratorio",
     "gerente",
