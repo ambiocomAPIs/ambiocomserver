@@ -12,6 +12,13 @@ const conductorSchema = new mongoose.Schema(
       required: true,
       trim: true,
     },
+    identificacion: {
+      type: String,
+      required: true,
+      trim: true,
+      unique: true,
+    },
+
     placaVehiculo: {
       type: String,
       required: true,

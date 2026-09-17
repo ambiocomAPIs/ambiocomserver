@@ -1991,3 +1991,7 @@
 [10/9/2026 12:51:53] POST /api/auth/login | status=200 | rol=anonimo | email=anonimo
 [12/9/2026 13:51:55] POST /api/seed-users | status=200 | rol=anonimo | email=anonimo
 [12/9/2026 13:54:24] POST /api/seed-users | status=200 | rol=anonimo | email=anonimo
+[15/9/2026 13:54:20] POST /api/auth/login | status=200 | rol=anonimo | email=anonimo
+[17/9/2026 8:21:21] POST /api/auth/login | status=200 | rol=anonimo | email=anonimo
+[17/9/2026 8:42:04] PUT /api/conductores/6aaa8345f089f3b5ea2965f6 | status=200 | rol=anonimo | email=anonimo
+[17/9/2026 8:42:28] PUT /api/conductores/6aa840b462f4d9da779d65f9 | status=200 | rol=anonimo | email=anonimo
