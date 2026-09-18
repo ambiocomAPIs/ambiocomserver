@@ -1995,3 +1995,8 @@
 [17/9/2026 8:21:21] POST /api/auth/login | status=200 | rol=anonimo | email=anonimo
 [17/9/2026 8:42:04] PUT /api/conductores/6aaa8345f089f3b5ea2965f6 | status=200 | rol=anonimo | email=anonimo
 [17/9/2026 8:42:28] PUT /api/conductores/6aa840b462f4d9da779d65f9 | status=200 | rol=anonimo | email=anonimo
+[18/9/2026 11:15:00] POST /api/auth/login | status=200 | rol=anonimo | email=anonimo
+[18/9/2026 11:20:31] POST /api/programaciondespacho/carga-masiva | status=201 | rol=developer | email=desarrolladores.ambiocom@ambiocom.com
+[18/9/2026 11:21:56] DELETE /api/programaciondespacho/6aad64cfe669e17a9668a741 | status=200 | rol=developer | email=desarrolladores.ambiocom@ambiocom.com
+[18/9/2026 11:22:02] DELETE /api/programaciondespacho/6aad64cfe669e17a9668a740 | status=200 | rol=developer | email=desarrolladores.ambiocom@ambiocom.com
+[18/9/2026 11:22:09] DELETE /api/programaciondespacho/6aad64cfe669e17a9668a742 | status=200 | rol=developer | email=desarrolladores.ambiocom@ambiocom.com
