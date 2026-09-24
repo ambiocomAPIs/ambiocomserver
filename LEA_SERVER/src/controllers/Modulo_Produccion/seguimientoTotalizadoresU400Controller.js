@@ -57,7 +57,8 @@ const diff = (row, inicioKey, finalKey) => {
 
   if (inicio === null && final === null) return null;
 
-  return round((final ?? 0) - (inicio ?? 0), 6);
+  return round(final - inicio, 6);
+  // return round((final ?? 0) - (inicio ?? 0), 6);
 };
 
 const validarMes = (mes) => /^\d{4}-(0[1-9]|1[0-2])$/.test(String(mes || ""));
@@ -145,6 +146,7 @@ const getUserFromReq = (req) =>
 const emptyTotals = () => ({
   renConsumo: null,
   prodTotal: null,
+  fdeTotal: null,
   tk402Total: null,
   renNivelTotal: null,
   ab801Total: null,
@@ -198,6 +200,8 @@ const tieneDatoOperativo = (row = {}) => {
     "renFinal",
     "prodInicio",
     "prodFinal",
+    "fdeInicio",
+    "fdeFinal",
     "tk402AInicio",
     "tk402AFinal",
     "tk402BInicio",
@@ -226,7 +230,22 @@ const calcularTurno = ({ row, factor402, factor801, fechaDefault, modalidadTurno
   const turnoNumero = getTurnoNumero(turno);
 
   const renConsumo = diff(row, "renInicio", "renFinal");
-  const prodTotal = diff(row, "prodInicio", "prodFinal");
+  // const prodTotal = diff(row, "prodInicio", "prodFinal");
+  const produccionBruta = diff(
+    row,
+    "prodInicio",
+    "prodFinal"
+  );
+
+  const fdeTotal = diff(row, "fdeInicio", "fdeFinal");
+  const prodTotal =
+    produccionBruta === null
+      ? null
+      : round(
+        Number(produccionBruta) -
+        Number(fdeTotal ?? 0),
+        6
+      );
 
   const tk402ADiff = diff(row, "tk402AInicio", "tk402AFinal");
   const tk402BDiff = diff(row, "tk402BInicio", "tk402BFinal");
@@ -313,6 +332,9 @@ const calcularTurno = ({ row, factor402, factor801, fechaDefault, modalidadTurno
     prodInicio: row?.prodInicio ?? "",
     prodFinal: row?.prodFinal ?? "",
 
+    fdeInicio: row?.fdeInicio ?? "",
+    fdeFinal: row?.fdeFinal ?? "",
+
     tk402AInicio: row?.tk402AInicio ?? "",
     tk402AFinal: row?.tk402AFinal ?? "",
     tk402BInicio: row?.tk402BInicio ?? "",
@@ -333,6 +355,7 @@ const calcularTurno = ({ row, factor402, factor801, fechaDefault, modalidadTurno
 
     renConsumo,
     prodTotal,
+    fdeTotal,
     tk402Total,
     renNivelTotal,
     ab801Total,
@@ -360,6 +383,7 @@ const sumarTurnos = (turnos = []) => {
   const base = {
     renConsumo: 0,
     prodTotal: 0,
+    fdeTotal: 0,
     tk402Total: 0,
     renNivelTotal: 0,
     ab801Total: 0,
@@ -387,6 +411,7 @@ const sumarTurnos = (turnos = []) => {
   return {
     renConsumo: round(base.renConsumo, 6),
     prodTotal: round(base.prodTotal, 6),
+    fdeTotal: round(base.fdeTotal, 6),
     tk402Total: round(base.tk402Total, 6),
     renNivelTotal: round(base.renNivelTotal, 6),
     ab801Total: round(base.ab801Total, 6),
@@ -438,23 +463,23 @@ const normalizarDias = ({ payload, factor402, factor801 }) => {
   const diasFuente = diasInput.length
     ? diasInput
     : rowsInput.reduce((acc, row, index) => {
-        const grupo = Math.floor(index / 3);
+      const grupo = Math.floor(index / 3);
 
-        if (!acc[grupo]) {
-          acc[grupo] = {
-            diaGrupo: grupo + 1,
-            fecha: row?.fecha || "",
-            turnos: [],
-          };
-        }
+      if (!acc[grupo]) {
+        acc[grupo] = {
+          diaGrupo: grupo + 1,
+          fecha: row?.fecha || "",
+          turnos: [],
+        };
+      }
 
-        acc[grupo].turnos.push({
-          ...row,
-          posicionTurnoDia: (index % 3) + 1,
-        });
+      acc[grupo].turnos.push({
+        ...row,
+        posicionTurnoDia: (index % 3) + 1,
+      });
 
-        return acc;
-      }, []);
+      return acc;
+    }, []);
 
   const dias = diasFuente
     .map((dia, diaIndex) => {
@@ -1068,14 +1093,14 @@ export const obtenerResumenDiarioTotalizadoresParaBitacora = async (
 
     const diaGuardado = Array.isArray(registro.dias)
       ? registro.dias.find(
-          (dia) => String(dia?.fecha || "").trim() === fecha
-        )
+        (dia) => String(dia?.fecha || "").trim() === fecha
+      )
       : null;
 
     let turnos = Array.isArray(diaGuardado?.turnos)
       ? diaGuardado.turnos.filter(
-          (turno) => turno?.activo !== false
-        )
+        (turno) => turno?.activo !== false
+      )
       : [];
 
     if (

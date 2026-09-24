@@ -6,6 +6,7 @@ const TotalesSchema = new Schema(
   {
     renConsumo: { type: Number, default: null },
     prodTotal: { type: Number, default: null },
+    fdeTotal: { type: Number, default: null },
     tk402Total: { type: Number, default: null },
     renNivelTotal: { type: Number, default: null },
     ab801Total: { type: Number, default: null },
@@ -49,6 +50,9 @@ const TurnoSchema = new Schema(
     prodInicio: { type: Schema.Types.Mixed, default: "" },
     prodFinal: { type: Schema.Types.Mixed, default: "" },
 
+    fdeInicio: { type: Schema.Types.Mixed, default: "" },
+    fdeFinal: { type: Schema.Types.Mixed, default: "" },
+
     tk402AInicio: { type: Schema.Types.Mixed, default: "" },
     tk402AFinal: { type: Schema.Types.Mixed, default: "" },
     tk402BInicio: { type: Schema.Types.Mixed, default: "" },
@@ -70,6 +74,7 @@ const TurnoSchema = new Schema(
     // Cálculos guardados para análisis
     renConsumo: { type: Number, default: null },
     prodTotal: { type: Number, default: null },
+    fdeTotal: { type: Number, default: null },
     tk402Total: { type: Number, default: null },
     renNivelTotal: { type: Number, default: null },
     ab801Total: { type: Number, default: null },
