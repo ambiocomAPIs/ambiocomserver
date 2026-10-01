@@ -4,12 +4,11 @@ import { createUser, updateUser, listUsers, getUser } from "../../controllers/Lo
 
 const router = Router();
 
-// 🔒 Ajusta el rol que será “admin del sistema”
-router.use(requireAuth, requireRole("admin"));
+// router.use(requireAuth, requireRole("admin"));
 
-router.get("/", listUsers);
-router.get("/:id", getUser);
-router.post("/", createUser);
-router.put("/:id", updateUser);
+router.get("/",requireAuth, requireRole("admin", "developer"),listUsers);
+router.get("/:id",requireAuth, requireRole("admin", "developer"), getUser);
+router.post("/",requireAuth, requireRole("admin", "developer"), createUser);
+router.put("/:id",requireAuth, requireRole("admin", "developer"), updateUser);
 
 export default router;
