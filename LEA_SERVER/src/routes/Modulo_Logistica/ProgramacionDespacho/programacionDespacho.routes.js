@@ -17,11 +17,11 @@ import { requireAuth, requireRole } from "../../../middlewares/auth.middleware.j
 const router = Router();
 
 router.post("/carga-masiva",requireAuth,requireRole( "developer","liderlogistica", "torrecontrollogistica" ),createProgramacionesMasivas);
-router.get("/rango", requireAuth, requireRole("developer","liderlogistica","laboratorio","gerente","supervisor","auxiliarlogistica2", "torrecontrollogistica", "comercial"), getProgramacionesByRango);
+router.get("/rango", requireAuth, requireRole("developer","liderlogistica","laboratorio","gerente","supervisor","auxiliarlogistica2", "torrecontrollogistica", "comercial", "usuariobascula"), getProgramacionesByRango);
 // patch para comercial, ingresar fecha estimada de llegada
 router.patch( "/:id/fecha-estimada-entrega",requireAuth, requireRole("developer", "comercial"), updateFechaEstimadaEntregaProgramacion );
 // CRUD
-router.get("/",requireAuth, requireRole("developer","liderlogistica","laboratorio","gerente","supervisor","auxiliarlogistica1","auxiliarlogistica2", "torrecontrollogistica", "comercial"), getProgramaciones);
+router.get("/",requireAuth, requireRole("developer","liderlogistica","laboratorio","gerente","supervisor","auxiliarlogistica1","auxiliarlogistica2", "torrecontrollogistica", "comercial", "usuariobascula"), getProgramaciones);
 router.get("/:id", requireAuth, requireRole("developer","liderlogistica","laboratorio","gerente","supervisor","auxiliarlogistica2", "torrecontrollogistica"), getProgramacionById);
 router.post("/", requireAuth, requireRole("developer","liderlogistica","laboratorio","gerente","supervisor","auxiliarlogistica2", "torrecontrollogistica"), createProgramacion);
 router.put("/:id", requireAuth, requireRole("developer","liderlogistica","laboratorio","gerente","supervisor","auxiliarlogistica2", "torrecontrollogistica"), updateProgramacion);
