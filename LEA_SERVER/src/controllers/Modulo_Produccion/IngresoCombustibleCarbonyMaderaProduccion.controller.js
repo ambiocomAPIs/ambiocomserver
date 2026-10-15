@@ -557,6 +557,10 @@ export const getResumenIngresosCombustiblesParaBitacora = async (
         toneladas: 0,
         viajes: 0,
       },
+      Bagazo: {
+        toneladas: 0,
+        viajes: 0,
+      },
     };
 
     const proveedoresMap = new Map();
@@ -635,10 +639,13 @@ export const getResumenIngresosCombustiblesParaBitacora = async (
     const resumenTotal = {
       toneladas:
         resumenBase.Carbón.toneladas +
-        resumenBase.Madera.toneladas,
+        resumenBase.Madera.toneladas +
+        resumenBase.Bagazo.toneladas,
+
       viajes:
         resumenBase.Carbón.viajes +
-        resumenBase.Madera.viajes,
+        resumenBase.Madera.viajes +
+        resumenBase.Bagazo.viajes,
     };
 
     const proveedores = Array.from(
@@ -694,6 +701,13 @@ export const getResumenIngresosCombustiblesParaBitacora = async (
             ),
             viajes:
               resumenBase.Madera.viajes,
+          },
+          bagazo: {
+            toneladas: roundNumber(
+              resumenBase.Bagazo.toneladas,
+              4
+            ),
+            viajes: resumenBase.Bagazo.viajes,
           },
 
           total: {
