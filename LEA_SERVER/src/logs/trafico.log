@@ -2186,3 +2186,9 @@
 [14/10/2026 7:45:24] POST /api/programaciondespacho | status=201 | rol=developer | email=desarrolladores.ambiocom@ambiocom.com
 [14/10/2026 7:45:37] DELETE /api/programaciondespacho/6ace5b77d47aac78fe9623b0 | status=200 | rol=developer | email=desarrolladores.ambiocom@ambiocom.com
 [14/10/2026 7:45:44] DELETE /api/programaciondespacho/6acf7964fbfd7e14a75f6080 | status=200 | rol=developer | email=desarrolladores.ambiocom@ambiocom.com
+[14/10/2026 11:15:53] POST /api/auth/login | status=200 | rol=anonimo | email=anonimo
+[14/10/2026 11:16:09] PUT /api/ingresos-combustibles/bulk | status=200 | rol=anonimo | email=anonimo
+[14/10/2026 11:17:47] PUT /api/consumos-combustibles/rango | status=200 | rol=anonimo | email=anonimo
+[14/10/2026 14:46:17] POST /api/auth/login | status=200 | rol=anonimo | email=anonimo
+[14/10/2026 15:07:39] POST /api/auth/login | status=200 | rol=developer | email=desarrolladores.ambiocom@ambiocom.com
+[14/10/2026 15:08:30] POST /api/auth/verify-columns | status=200 | rol=anonimo | email=anonimo

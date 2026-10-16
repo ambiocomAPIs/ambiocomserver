@@ -93,7 +93,7 @@ const CotizacionAlcoholComercialSchema = new Schema(
       required: true,
       trim: true,
       lowercase: true,
-      enum: ["emily", "vanessa", "marcelo"],
+      enum: ["emily", "vanessa", "angela", "marcelo"],
       index: true,
     },
 
