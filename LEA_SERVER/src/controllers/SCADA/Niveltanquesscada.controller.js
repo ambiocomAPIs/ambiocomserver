@@ -154,3 +154,45 @@ export const obtenerUltimoNivel = async (req, res) => {
     });
   }
 };
+
+
+export const obtenerNivelesPorUnDia = async (req, res) => {
+  try {
+    const { fecha } = req.params;
+
+    // Validar formato y fecha calendario real.
+    const formatoValido = /^\d{4}-\d{2}-\d{2}$/.test(fecha);
+
+    const fechaValida =
+      formatoValido &&
+      !Number.isNaN(new Date(`${fecha}T00:00:00Z`).getTime()) &&
+      new Date(`${fecha}T00:00:00Z`)
+        .toISOString()
+        .slice(0, 10) === fecha;
+
+    if (!fechaValida) {
+      return res.status(400).json({
+        ok: false,
+        message: "La fecha debe ser válida (YYYY-MM-DD)",
+      });
+    }
+
+    const niveles = await Nivel.find({ fecha })
+      .sort({ hora: 1, _id: 1 })
+      .lean();
+
+    return res.status(200).json({
+      ok: true,
+      fecha,
+      total: niveles.length,
+      data: niveles,
+    });
+  } catch (error) {
+    console.error("Error consultando niveles SCADA:", error);
+
+    return res.status(500).json({
+      ok: false,
+      message: "Error consultando niveles del día",
+    });
+  }
+};

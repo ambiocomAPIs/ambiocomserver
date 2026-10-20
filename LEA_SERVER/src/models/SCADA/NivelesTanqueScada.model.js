@@ -82,6 +82,12 @@ const NiveltanquesscadaSchema = new mongoose.Schema(
   }
 );
 
+NiveltanquesscadaSchema.index({
+  fecha: 1,
+  hora: 1,
+});
+
+
 const Niveltanquesscada = mongoose.model(
   "Niveltanquesscada",
   NiveltanquesscadaSchema
