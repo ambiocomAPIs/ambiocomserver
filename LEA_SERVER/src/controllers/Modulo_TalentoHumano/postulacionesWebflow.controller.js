@@ -1,5 +1,5 @@
 
-import { createHmac, timingSafeEqual,} from "node:crypto";
+import { createHmac, timingSafeEqual, } from "node:crypto";
 
 import PostulacionLaboral from "../../models/Modulo_TalentoHumano/PostulacionLaboral.js";
 
@@ -37,9 +37,9 @@ const obtenerUrlPDF = (valor) => {
     typeof archivo === "string"
       ? archivo
       : archivo?.url ||
-        archivo?.fileUrl ||
-        archivo?.href ||
-        "";
+      archivo?.fileUrl ||
+      archivo?.href ||
+      "";
 
   if (
     typeof candidato !== "string" ||
@@ -149,6 +149,38 @@ export const recibirPostulacionWebflow = async (
   res
 ) => {
   try {
+
+    console.log("========== DIAGNÓSTICO WEBFLOW ==========");
+
+    console.log("Content-Type:", req.get("content-type"));
+
+    console.log(
+      "WEBFLOW_WEBHOOK_SECRET configurada:",
+      Boolean(process.env.WEBFLOW_WEBHOOK_SECRET)
+    );
+
+    console.log(
+      "Timestamp presente:",
+      Boolean(req.get("x-webflow-timestamp"))
+    );
+
+    console.log(
+      "Firma presente:",
+      Boolean(req.get("x-webflow-signature"))
+    );
+
+    console.log(
+      "Body es Buffer:",
+      Buffer.isBuffer(req.body)
+    );
+
+    console.log(
+      "Tipo de body:",
+      typeof req.body
+    );
+
+    console.log("========================================");
+
 
     // 1. Validar firma del webhook
     if (!validarFirmaWebflow(req)) {
