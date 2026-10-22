@@ -73,51 +73,49 @@ const obtenerUrlPDF = (valor) => {
 };
 
 
-/* ===================================================
-   VALIDAR FIRMA DEL WEBHOOK WEBFLOW
-=================================================== */
+/* ========  VALIDAR FIRMA DEL WEBHOOK WEBFLOW ============ */
 
 const validarFirmaWebflow = (req) => {
-  const secret =
-    process.env.WEBFLOW_WEBHOOK_SECRET;
+  const secret = process.env.WEBFLOW_WEBHOOK_SECRET;
 
-  const timestamp =
-    req.get("x-webflow-timestamp");
+  const timestamp = req.get("x-webflow-timestamp");
+  const firma = req.get("x-webflow-signature");
 
-  const firma =
-    req.get("x-webflow-signature");
-
-  if (
-    !secret ||
-    !timestamp ||
-    !firma ||
-    !Buffer.isBuffer(req.body)
-  ) {
+  if (!secret || !timestamp || !firma) {
     return false;
   }
 
-  // La fecha debe estar en milisegundos
+  // Validar timestamp
   if (!/^\d{13}$/.test(timestamp)) {
     return false;
   }
 
-  const tiempo = Number(timestamp);
-
   const diferencia = Math.abs(
-    Date.now() - tiempo
+    Date.now() - Number(timestamp)
   );
 
-  // Máximo 5 minutos de diferencia
   if (diferencia > 300000) {
     return false;
   }
 
-  // Verificar formato de firma SHA-256
+  // Validar formato de firma
   if (!/^[a-f0-9]{64}$/i.test(firma)) {
     return false;
   }
 
-  const contenido = req.body.toString("utf8");
+  // Compatible con express.json() y express.raw()
+  let contenido;
+
+  if (Buffer.isBuffer(req.body)) {
+    contenido = req.body.toString("utf8");
+  } else if (
+    req.body &&
+    typeof req.body === "object"
+  ) {
+    contenido = JSON.stringify(req.body);
+  } else {
+    return false;
+  }
 
   const mensaje = `${timestamp}:${contenido}`;
 
@@ -138,7 +136,6 @@ const validarFirmaWebflow = (req) => {
     firmaRecibida
   );
 };
-
 
 /* ===================================================
    CONTROLLER - RECIBIR POSTULACIÓN WEBFLOW
