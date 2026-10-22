@@ -74,7 +74,7 @@ const PostulacionLaboralWebFlowSchema = new mongoose.Schema(
   },
   {
     timestamps: true,
-    collection: "postulacioneslaborales",
+    collection: "postulacioneslaboraleswebflow",
   }
 );
 
