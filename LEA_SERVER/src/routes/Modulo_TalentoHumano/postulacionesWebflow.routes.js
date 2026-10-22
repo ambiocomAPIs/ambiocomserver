@@ -7,20 +7,13 @@ import {
 
 const router = express.Router();
 
-/*
-  WEBHOOK WEBFLOW
-  Recibe automáticamente una postulación
-  cuando un aspirante envía el formulario.
-*/
+/* ===================================================
+   WEBHOOK WEBFLOW
+   Recibe automáticamente las postulaciones
+=================================================== */
 
 router.post(
   "/webflow/webhook",
-
-  express.raw({
-    type: "application/json",
-    limit: "512kb",
-  }),
-
   recibirPostulacionWebflow
 );
 

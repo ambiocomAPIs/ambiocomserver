@@ -1,5 +1,5 @@
 
-import { createHmac, timingSafeEqual, } from "node:crypto";
+import { createHmac, timingSafeEqual } from "node:crypto";
 
 import PostulacionLaboral from "../../models/Modulo_TalentoHumano/PostulacionLaboral.js";
 
@@ -23,7 +23,6 @@ const obtenerCampo = (data, ...nombres) => {
   return "";
 };
 
-
 /* ===================================================
    OBTENER URL DEL PDF
 =================================================== */
@@ -37,9 +36,9 @@ const obtenerUrlPDF = (valor) => {
     typeof archivo === "string"
       ? archivo
       : archivo?.url ||
-      archivo?.fileUrl ||
-      archivo?.href ||
-      "";
+        archivo?.fileUrl ||
+        archivo?.href ||
+        "";
 
   if (
     typeof candidato !== "string" ||
@@ -72,48 +71,78 @@ const obtenerUrlPDF = (valor) => {
   }
 };
 
+/* ===================================================
+   OBTENER CONTENIDO JSON
+   Compatible con express.json() y express.raw()
+=================================================== */
 
-/* ========  VALIDAR FIRMA DEL WEBHOOK WEBFLOW ============ */
+const obtenerContenidoJSON = (req) => {
+  if (Buffer.isBuffer(req.body)) {
+    return req.body.toString("utf8");
+  }
+
+  if (
+    req.body &&
+    typeof req.body === "object" &&
+    !Array.isArray(req.body)
+  ) {
+    return JSON.stringify(req.body);
+  }
+
+  return null;
+};
+
+/* ===================================================
+   VALIDAR FIRMA WEBFLOW
+   HMAC-SHA256
+=================================================== */
 
 const validarFirmaWebflow = (req) => {
-  const secret = process.env.WEBFLOW_WEBHOOK_SECRET;
+  const secret =
+    process.env.WEBFLOW_WEBHOOK_SECRET;
 
-  const timestamp = req.get("x-webflow-timestamp");
-  const firma = req.get("x-webflow-signature");
+  const timestamp =
+    req.get("x-webflow-timestamp");
 
-  if (!secret || !timestamp || !firma) {
+  const firma =
+    req.get("x-webflow-signature");
+
+  if (
+    !secret ||
+    !timestamp ||
+    !firma
+  ) {
     return false;
   }
 
-  // Validar timestamp
+  // Timestamp en milisegundos
   if (!/^\d{13}$/.test(timestamp)) {
     return false;
   }
 
+  const tiempo = Number(timestamp);
+
+  if (!Number.isSafeInteger(tiempo)) {
+    return false;
+  }
+
   const diferencia = Math.abs(
-    Date.now() - Number(timestamp)
+    Date.now() - tiempo
   );
 
+  // Evitar solicitudes antiguas o futuras
   if (diferencia > 300000) {
     return false;
   }
 
-  // Validar formato de firma
+  // La firma debe ser SHA-256 hexadecimal
   if (!/^[a-f0-9]{64}$/i.test(firma)) {
     return false;
   }
 
-  // Compatible con express.json() y express.raw()
-  let contenido;
+  const contenido = obtenerContenidoJSON(req);
 
-  if (Buffer.isBuffer(req.body)) {
-    contenido = req.body.toString("utf8");
-  } else if (
-    req.body &&
-    typeof req.body === "object"
-  ) {
-    contenido = JSON.stringify(req.body);
-  } else {
+  if (contenido === null) {
     return false;
   }
 
@@ -123,13 +152,19 @@ const validarFirmaWebflow = (req) => {
     "sha256",
     secret
   )
-    .update(mensaje)
+    .update(mensaje, "utf8")
     .digest();
 
   const firmaRecibida = Buffer.from(
     firma,
     "hex"
   );
+
+  if (
+    firmaEsperada.length !== firmaRecibida.length
+  ) {
+    return false;
+  }
 
   return timingSafeEqual(
     firmaEsperada,
@@ -147,12 +182,21 @@ export const recibirPostulacionWebflow = async (
 ) => {
   try {
 
-    console.log("========== DIAGNÓSTICO WEBFLOW ==========");
-
-    console.log("Content-Type:", req.get("content-type"));
+    /* ===================================================
+       1. DIAGNÓSTICO INICIAL
+    =================================================== */
 
     console.log(
-      "WEBFLOW_WEBHOOK_SECRET configurada:",
+      "========== DIAGNÓSTICO WEBFLOW =========="
+    );
+
+    console.log(
+      "Content-Type:",
+      req.get("content-type")
+    );
+
+    console.log(
+      "Secret configurada:",
       Boolean(process.env.WEBFLOW_WEBHOOK_SECRET)
     );
 
@@ -176,45 +220,143 @@ export const recibirPostulacionWebflow = async (
       typeof req.body
     );
 
-    console.log("========================================");
+    console.log(
+      "========================================"
+    );
 
+    /* ===================================================
+       2. VALIDAR FIRMA DEL WEBHOOK
+    =================================================== */
 
-    // 1. Validar firma del webhook
-    if (!validarFirmaWebflow(req)) {
+    const firmaValida = validarFirmaWebflow(req);
+
+    if (!firmaValida) {
+
+      console.warn(
+        "WEBFLOW: Firma no válida o configuración incorrecta"
+      );
+
       return res.status(401).json({
         ok: false,
         message: "Firma Webflow no válida",
       });
     }
 
-    // 2. Interpretar la solicitud JSON
+    console.log(
+      "WEBFLOW: Firma validada correctamente"
+    );
+
+    /* ===================================================
+       3. INTERPRETAR JSON
+    =================================================== */
+
     let evento;
 
     try {
-      evento = JSON.parse(
-        req.body.toString("utf8")
-      );
+      if (Buffer.isBuffer(req.body)) {
+
+        evento = JSON.parse(
+          req.body.toString("utf8")
+        );
+
+      } else if (
+        req.body &&
+        typeof req.body === "object" &&
+        !Array.isArray(req.body)
+      ) {
+
+        evento = req.body;
+
+      } else {
+        throw new Error("Body inválido");
+      }
+
+      if (
+        !evento ||
+        typeof evento !== "object" ||
+        Array.isArray(evento)
+      ) {
+        throw new Error("Evento inválido");
+      }
+
     } catch {
+
       return res.status(400).json({
         ok: false,
         message: "JSON inválido",
       });
     }
 
-    // 3. Validar tipo de evento
+    /* ===================================================
+       4. VALIDAR TIPO DE EVENTO
+    =================================================== */
+
     if (
       evento.triggerType !==
       "form_submission"
     ) {
+
+      console.log(
+        "WEBFLOW: Evento ignorado:",
+        evento.triggerType
+      );
+
       return res.status(200).json({
         ok: true,
         ignored: true,
+        message: "Evento no corresponde a formulario",
       });
     }
 
     const payload = evento.payload || {};
 
-    // 4. Validar sitio y formulario
+    /* ===================================================
+       5. DIAGNÓSTICO DEL FORMULARIO
+       No imprimir datos personales
+    =================================================== */
+
+    console.log(
+      "========== POSTULACIÓN WEBFLOW =========="
+    );
+
+    console.log(
+      "Site ID recibido:",
+      payload.siteId
+    );
+
+    console.log(
+      "Form ID recibido:",
+      payload.formId
+    );
+
+    console.log(
+      "Submission ID:",
+      payload.id
+    );
+
+    console.log(
+      "Fecha:",
+      payload.submittedAt
+    );
+
+    console.log(
+      "Nombre del formulario:",
+      payload.name
+    );
+
+    console.log(
+      "Campos recibidos:",
+      Object.keys(payload.data || {})
+    );
+
+    console.log(
+      "========================================"
+    );
+
+    /* ===================================================
+       6. VALIDAR SITIO Y FORMULARIO
+    =================================================== */
+
     const siteIdEsperado =
       process.env.WEBFLOW_SITE_ID;
 
@@ -225,6 +367,11 @@ export const recibirPostulacionWebflow = async (
       !siteIdEsperado ||
       !formIdEsperado
     ) {
+
+      console.error(
+        "WEBFLOW: Falta configurar Site ID o Form ID"
+      );
+
       return res.status(503).json({
         ok: false,
         message: "Configuración incompleta",
@@ -235,55 +382,92 @@ export const recibirPostulacionWebflow = async (
       payload.siteId !== siteIdEsperado ||
       payload.formId !== formIdEsperado
     ) {
+
+      console.warn(
+        "WEBFLOW: Formulario o sitio no autorizado"
+      );
+
       return res.status(200).json({
         ok: true,
         ignored: true,
+        message: "Sitio o formulario no corresponde",
       });
     }
 
-    // 5. Validar ID de postulación
+    /* ===================================================
+       7. VALIDAR IDENTIFICADOR DE POSTULACIÓN
+    =================================================== */
+
     if (
       typeof payload.id !== "string" ||
-      !payload.id
+      !payload.id.trim()
     ) {
+
       return res.status(400).json({
         ok: false,
         message: "ID de postulación inválido",
       });
     }
 
-    const data = payload.data || {};
+    if (
+      !payload.data ||
+      typeof payload.data !== "object" ||
+      Array.isArray(payload.data)
+    ) {
 
-    // 6. Extraer datos del aspirante
+      return res.status(400).json({
+        ok: false,
+        message: "Datos del formulario inválidos",
+      });
+    }
+
+    const data = payload.data;
+
+    /* ===================================================
+       8. EXTRAER DATOS DEL ASPIRANTE
+    =================================================== */
+
     const nombreCompleto = obtenerCampo(
       data,
       "Nombre completo",
+      "Nombre Completo",
       "Name"
     );
 
     const correoPersonal = obtenerCampo(
       data,
       "Correo personal",
-      "Email"
+      "Correo Personal",
+      "Email",
+      "Correo electrónico"
     );
 
     const contactoPersonal = obtenerCampo(
       data,
       "Contacto personal",
+      "Contacto Personal",
+      "Teléfono",
+      "Telefono",
       "Field"
     );
 
     const expectativasComentarios = obtenerCampo(
       data,
       "Expectativas y comentarios",
+      "Expectativas y Comentarios",
+      "Comentarios",
       "Field 2"
     );
 
-    // 7. Obtener enlace del archivo PDF
+    /* ===================================================
+       9. EXTRAER HOJA DE VIDA PDF
+    =================================================== */
+
     const archivoPDF = obtenerCampo(
       data,
       "Hoja de vida PDF",
       "Hoja de vida (PDF)",
+      "Hoja de vida",
       "File"
     );
 
@@ -291,30 +475,118 @@ export const recibirPostulacionWebflow = async (
       archivoPDF
     );
 
-    // 8. Extraer información de la vacante
+    /* ===================================================
+       10. EXTRAER DATOS DE LA VACANTE
+       Los campos deben estar presentes en
+       payload.data para poder recuperarlos.
+    =================================================== */
+
     const tituloVacante = obtenerCampo(
       data,
       "Vacante",
-      "Cargo"
+      "Cargo",
+      "Titulo Vacante",
+      "Título de la vacante",
+      "vacante_titulo"
     );
 
     const ciudad = obtenerCampo(
       data,
-      "Ciudad"
+      "Ciudad",
+      "Ciudad vacante",
+      "vacante_ciudad"
     );
 
     const modalidad = obtenerCampo(
       data,
-      "Modalidad"
+      "Modalidad",
+      "vacante_modalidad"
     );
 
     const contrato = obtenerCampo(
       data,
-      "Contrato"
+      "Contrato",
+      "Tipo de contrato",
+      "vacante_contrato"
     );
 
-    // 9. Preparar documento MongoDB
+    /* ===================================================
+       11. DIAGNÓSTICO DEL MAPEO
+       Solo presencia de datos, sin valores privados
+    =================================================== */
+
+    console.log(
+      "========== MAPEO POSTULACIÓN =========="
+    );
+
+    console.log(
+      "Nombre encontrado:",
+      Boolean(nombreCompleto)
+    );
+
+    console.log(
+      "Correo encontrado:",
+      Boolean(correoPersonal)
+    );
+
+    console.log(
+      "Contacto encontrado:",
+      Boolean(contactoPersonal)
+    );
+
+    console.log(
+      "Comentarios encontrados:",
+      Boolean(expectativasComentarios)
+    );
+
+    console.log(
+      "PDF válido:",
+      Boolean(urlPDF)
+    );
+
+    console.log(
+      "Título vacante encontrado:",
+      Boolean(tituloVacante)
+    );
+
+    console.log(
+      "Ciudad encontrada:",
+      Boolean(ciudad)
+    );
+
+    console.log(
+      "Modalidad encontrada:",
+      Boolean(modalidad)
+    );
+
+    console.log(
+      "Contrato encontrado:",
+      Boolean(contrato)
+    );
+
+    console.log(
+      "======================================"
+    );
+
+    /* ===================================================
+       12. PREPARAR FECHA
+    =================================================== */
+
+    const fechaRecibida = payload.submittedAt
+      ? new Date(payload.submittedAt)
+      : new Date();
+
+    const fechaPostulacion =
+      Number.isNaN(fechaRecibida.getTime())
+        ? new Date()
+        : fechaRecibida;
+
+    /* ===================================================
+       13. PREPARAR DOCUMENTO MONGODB
+    =================================================== */
+
     const nuevaPostulacion = {
+
       webflowSubmissionId: payload.id,
 
       webflowSiteId: payload.siteId,
@@ -345,14 +617,15 @@ export const recibirPostulacionWebflow = async (
           : "PENDIENTE_VERIFICACION",
       },
 
-      fechaPostulacion: payload.submittedAt
-        ? new Date(payload.submittedAt)
-        : new Date(),
+      fechaPostulacion,
 
       estado: "RECIBIDA",
     };
 
-    // 10. Registrar sin duplicar postulaciones
+    /* ===================================================
+       14. GUARDAR SIN DUPLICADOS
+    =================================================== */
+
     const resultado =
       await PostulacionLaboral.updateOne(
         {
@@ -363,11 +636,22 @@ export const recibirPostulacionWebflow = async (
         },
         {
           upsert: true,
+          runValidators: true,
         }
       );
 
     const creada =
       resultado.upsertedCount > 0;
+
+    console.log(
+      creada
+        ? "WEBFLOW: Postulación registrada en MongoDB"
+        : "WEBFLOW: Postulación ya registrada"
+    );
+
+    /* ===================================================
+       15. RESPUESTA
+    =================================================== */
 
     return res.status(200).json({
       ok: true,
@@ -377,15 +661,22 @@ export const recibirPostulacionWebflow = async (
         : "Postulación ya existente",
 
       creada,
+
+      webflowSubmissionId: payload.id,
     });
 
   } catch (error) {
 
-    // Evitar fallos por reintentos simultáneos
+    /* ===================================================
+       EVITAR DUPLICADOS POR REINTENTOS
+    =================================================== */
+
     if (error.code === 11000) {
+
       return res.status(200).json({
         ok: true,
         message: "Postulación ya registrada",
+        creada: false,
       });
     }
 
