@@ -23,6 +23,7 @@ const obtenerCampo = (data, ...nombres) => {
   return "";
 };
 
+
 /* ===================================================
    OBTENER URL DEL PDF
 =================================================== */
@@ -71,6 +72,7 @@ const obtenerUrlPDF = (valor) => {
   }
 };
 
+
 /* ===================================================
    OBTENER CONTENIDO JSON
    Compatible con express.json() y express.raw()
@@ -91,6 +93,7 @@ const obtenerContenidoJSON = (req) => {
 
   return null;
 };
+
 
 /* ===================================================
    VALIDAR FIRMA WEBFLOW
@@ -172,6 +175,7 @@ const validarFirmaWebflow = (req) => {
   );
 };
 
+
 /* ===================================================
    CONTROLLER - RECIBIR POSTULACIÓN WEBFLOW
 =================================================== */
@@ -224,6 +228,7 @@ export const recibirPostulacionWebflow = async (
       "========================================"
     );
 
+
     /* ===================================================
        2. VALIDAR FIRMA DEL WEBHOOK
     =================================================== */
@@ -245,6 +250,7 @@ export const recibirPostulacionWebflow = async (
     console.log(
       "WEBFLOW: Firma validada correctamente"
     );
+
 
     /* ===================================================
        3. INTERPRETAR JSON
@@ -287,6 +293,7 @@ export const recibirPostulacionWebflow = async (
       });
     }
 
+
     /* ===================================================
        4. VALIDAR TIPO DE EVENTO
     =================================================== */
@@ -309,6 +316,7 @@ export const recibirPostulacionWebflow = async (
     }
 
     const payload = evento.payload || {};
+
 
     /* ===================================================
        5. DIAGNÓSTICO DEL FORMULARIO
@@ -353,6 +361,7 @@ export const recibirPostulacionWebflow = async (
       "========================================"
     );
 
+
     /* ===================================================
        6. VALIDAR SITIO Y FORMULARIO
     =================================================== */
@@ -394,6 +403,7 @@ export const recibirPostulacionWebflow = async (
       });
     }
 
+
     /* ===================================================
        7. VALIDAR IDENTIFICADOR DE POSTULACIÓN
     =================================================== */
@@ -422,6 +432,7 @@ export const recibirPostulacionWebflow = async (
     }
 
     const data = payload.data;
+
 
     /* ===================================================
        8. EXTRAER DATOS DEL ASPIRANTE
@@ -459,6 +470,7 @@ export const recibirPostulacionWebflow = async (
       "Field 2"
     );
 
+
     /* ===================================================
        9. EXTRAER HOJA DE VIDA PDF
     =================================================== */
@@ -475,10 +487,10 @@ export const recibirPostulacionWebflow = async (
       archivoPDF
     );
 
+
     /* ===================================================
        10. EXTRAER DATOS DE LA VACANTE
-       Los campos deben estar presentes en
-       payload.data para poder recuperarlos.
+       CMS WEBFLOW
     =================================================== */
 
     const tituloVacante = obtenerCampo(
@@ -509,6 +521,74 @@ export const recibirPostulacionWebflow = async (
       "Tipo de contrato",
       "vacante_contrato"
     );
+
+
+    /* ===================================================
+       NUEVOS CAMPOS DEL CMS WEBFLOW
+       FECHAS Y ESTADO DE LA VACANTE
+    =================================================== */
+
+    const fechaPublicacion = obtenerCampo(
+      data,
+      "vacante_fecha_publicacion"
+    );
+
+    const fechaCierre = obtenerCampo(
+      data,
+      "vacante_fecha_cierre"
+    );
+
+    const vacanteActiva = obtenerCampo(
+      data,
+      "vacante_activa"
+    );
+
+
+    /* ===================================================
+       CONVERTIR FECHAS DEL CMS
+    =================================================== */
+
+    const convertirFechaCMS = (valor) => {
+      if (!valor) return null;
+
+      const fecha = new Date(valor);
+
+      return Number.isNaN(fecha.getTime())
+        ? null
+        : fecha;
+    };
+
+
+    /* ===================================================
+       CONVERTIR ESTADO ACTIVO DEL CMS
+    =================================================== */
+
+    const convertirBooleanoCMS = (valor) => {
+      if (typeof valor === "boolean") {
+        return valor;
+      }
+
+      const texto = String(valor ?? "")
+        .trim()
+        .toLowerCase();
+
+      if (
+        ["true", "1", "yes", "si", "sí"]
+          .includes(texto)
+      ) {
+        return true;
+      }
+
+      if (
+        ["false", "0", "no"]
+          .includes(texto)
+      ) {
+        return false;
+      }
+
+      return null;
+    };
+
 
     /* ===================================================
        11. DIAGNÓSTICO DEL MAPEO
@@ -564,12 +644,35 @@ export const recibirPostulacionWebflow = async (
       Boolean(contrato)
     );
 
+    // Nuevos campos del CMS
+
+    console.log(
+      "Fecha publicación encontrada:",
+      Boolean(fechaPublicacion)
+    );
+
+    console.log(
+      "Fecha cierre encontrada:",
+      Boolean(fechaCierre)
+    );
+
+    console.log(
+      "Vacante activa recibida:",
+      vacanteActiva !== ""
+    );
+
+    console.log(
+      "Valor activo interpretado:",
+      convertirBooleanoCMS(vacanteActiva)
+    );
+
     console.log(
       "======================================"
     );
 
+
     /* ===================================================
-       12. PREPARAR FECHA
+       12. PREPARAR FECHA DE POSTULACIÓN
     =================================================== */
 
     const fechaRecibida = payload.submittedAt
@@ -580,6 +683,7 @@ export const recibirPostulacionWebflow = async (
       Number.isNaN(fechaRecibida.getTime())
         ? new Date()
         : fechaRecibida;
+
 
     /* ===================================================
        13. PREPARAR DOCUMENTO MONGODB
@@ -598,6 +702,19 @@ export const recibirPostulacionWebflow = async (
         ciudad: String(ciudad),
         modalidad: String(modalidad),
         contrato: String(contrato),
+
+        // Nuevos campos del CMS
+        fechaPublicacion: convertirFechaCMS(
+          fechaPublicacion
+        ),
+
+        fechaCierre: convertirFechaCMS(
+          fechaCierre
+        ),
+
+        activa: convertirBooleanoCMS(
+          vacanteActiva
+        ),
       },
 
       aspirante: {
@@ -621,6 +738,7 @@ export const recibirPostulacionWebflow = async (
 
       estado: "RECIBIDA",
     };
+
 
     /* ===================================================
        14. GUARDAR SIN DUPLICADOS
@@ -648,6 +766,7 @@ export const recibirPostulacionWebflow = async (
         ? "WEBFLOW: Postulación registrada en MongoDB"
         : "WEBFLOW: Postulación ya registrada"
     );
+
 
     /* ===================================================
        15. RESPUESTA

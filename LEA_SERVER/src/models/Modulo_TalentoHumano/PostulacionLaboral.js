@@ -1,7 +1,7 @@
 
 import mongoose from "mongoose";
 
-const PostulacionLaboralSchema = new mongoose.Schema(
+const PostulacionLaboralWebFlowSchema = new mongoose.Schema(
   {
     webflowSubmissionId: {
       type: String,
@@ -13,11 +13,42 @@ const PostulacionLaboralSchema = new mongoose.Schema(
     webflowFormId: String,
 
     vacante: {
-      titulo: String,
-      ciudad: String,
-      modalidad: String,
-      contrato: String,
+      titulo: {
+        type: String,
+        trim: true,
+      },
+
+      ciudad: {
+        type: String,
+        trim: true,
+      },
+
+      modalidad: {
+        type: String,
+        trim: true,
+      },
+
+      contrato: {
+        type: String,
+        trim: true,
+      },
+
+      fechaPublicacion: {
+        type: Date,
+        default: null,
+      },
+
+      fechaCierre: {
+        type: Date,
+        default: null,
+      },
+
+      activa: {
+        type: Boolean,
+        default: null,
+      },
     },
+
 
     aspirante: {
       nombreCompleto: String,
@@ -48,6 +79,6 @@ const PostulacionLaboralSchema = new mongoose.Schema(
 );
 
 export default mongoose.model(
-  "PostulacionLaboral",
-  PostulacionLaboralSchema
+  "PostulacionLaboralWebFlow",
+  PostulacionLaboralWebFlowSchema
 );
