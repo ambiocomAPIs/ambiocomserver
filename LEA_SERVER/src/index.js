@@ -90,6 +90,8 @@ import tutorialModalList from "./routes/ModalTutorialList/tutorialModalList.rout
 import configuraciones from "./config/config.js";
 //SCADA
 import Niveltanquesscada from "./routes/SCADA/Niveltanquesscada.routes.js";
+//WEBFLOW POSTULACIONES
+import postulacionesWebflowRoutes from "./routes/Modulo_TalentoHumano/postulacionesWebflow.routes.js";
 
 dotenv.config();
 
@@ -248,6 +250,9 @@ app.use("/api/taskrequerimentdev", TaskRequerimentDev);
 app.use("/api/ricekanban", RiceRoutes);
 // SCADA
 app.use("/api/scada/nivelesaveva", Niveltanquesscada);
+//webflow pstulaciones
+app.use( "/api/postulaciones", postulacionesWebflowRoutes);
+
 
 // ======= enpoint que verifica conexcion con el backend e internet (NO BORRAR) =========
 app.get("/api/health", (req, res) => {

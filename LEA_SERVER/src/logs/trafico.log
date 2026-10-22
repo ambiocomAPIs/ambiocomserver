@@ -2203,3 +2203,5 @@
 [20/10/2026 12:59:45] POST /api/auth/login | status=200 | rol=anonimo | email=anonimo
 [20/10/2026 14:05:28] POST /api/auth/logout | status=200 | rol=anonimo | email=anonimo
 [20/10/2026 14:12:49] POST /api/auth/login | status=200 | rol=anonimo | email=anonimo
+[21/10/2026 7:36:43] POST /api/auth/login | status=200 | rol=anonimo | email=anonimo
+[22/10/2026 13:05:59] POST /api/auth/login | status=200 | rol=anonimo | email=anonimo
