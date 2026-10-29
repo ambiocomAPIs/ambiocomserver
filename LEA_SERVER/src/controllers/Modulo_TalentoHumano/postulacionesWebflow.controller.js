@@ -1,4 +1,5 @@
 
+import mongoose from "mongoose";
 import { createHmac, timingSafeEqual } from "node:crypto";
 
 import PostulacionLaboral from "../../models/Modulo_TalentoHumano/PostulacionLaboral.js";
@@ -37,9 +38,9 @@ const obtenerUrlPDF = (valor) => {
     typeof archivo === "string"
       ? archivo
       : archivo?.url ||
-        archivo?.fileUrl ||
-        archivo?.href ||
-        "";
+      archivo?.fileUrl ||
+      archivo?.href ||
+      "";
 
   if (
     typeof candidato !== "string" ||
@@ -807,6 +808,85 @@ export const recibirPostulacionWebflow = async (
     return res.status(500).json({
       ok: false,
       message: "Error al procesar la postulación",
+    });
+  }
+};
+
+
+export const listarPostulacionesWebflow = async (req, res) => {
+  try {
+    const postulaciones = await PostulacionLaboral.find({})
+      .sort({ fechaPostulacion: -1, createdAt: -1 })
+      .lean();
+
+    return res.status(200).json({
+      ok: true,
+      total: postulaciones.length,
+      postulaciones,
+    });
+  } catch (error) {
+    console.error("Error consultando postulaciones:", error.message);
+    return res.status(500).json({
+      ok: false,
+      message: "No fue posible consultar las postulaciones.",
+    });
+  }
+};
+
+
+
+const ESTADOS_POSTULACION = [
+  "RECIBIDA",
+  "EN_REVISION",
+  "PRESELECCIONADA",
+  "ENTREVISTA",
+  "EVALUACION",
+  "SELECCIONADA",
+  "CONTRATADA",
+  "DESCARTADA",
+];
+
+export const actualizarEstadoPostulacionWebflow = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { estado } = req.body || {};
+
+    if (!mongoose.isValidObjectId(id)) {
+      return res.status(400).json({
+        ok: false,
+        message: "ID de postulación inválido.",
+      });
+    }
+
+    if (!ESTADOS_POSTULACION.includes(estado)) {
+      return res.status(400).json({
+        ok: false,
+        message: "Estado no permitido.",
+      });
+    }
+
+    const postulacion = await PostulacionLaboral.findByIdAndUpdate(
+      id,
+      { $set: { estado } },
+      { new: true, runValidators: true }
+    ).lean();
+
+    if (!postulacion) {
+      return res.status(404).json({
+        ok: false,
+        message: "Postulación no encontrada.",
+      });
+    }
+
+    return res.status(200).json({
+      ok: true,
+      postulacion,
+    });
+  } catch (error) {
+    console.error("Error actualizando postulación:", error.message);
+    return res.status(500).json({
+      ok: false,
+      message: "No fue posible actualizar el estado.",
     });
   }
 };
