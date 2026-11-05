@@ -83,13 +83,14 @@ import trafficRoutes from "./routes/System/traffic.routes.js";
 //modulo_DEv
 import TaskRequerimentDev from "./routes/Dev_Module/Task_RequerimentRoutes.js"
 import RiceRoutes from "./routes/RICE/rice.routes.js"
-
 // Componente Tutoriales
 import tutorialModalList from "./routes/ModalTutorialList/tutorialModalList.routes.js"
 //CONFIGS
 import configuraciones from "./config/config.js";
 //SCADA
 import Niveltanquesscada from "./routes/SCADA/Niveltanquesscada.routes.js";
+//COCLI COMBAS
+import pesajesColiCombass from "./routes/COCLI_COMBAS/pesajesCombass.routes.js";
 //WEBFLOW POSTULACIONES
 import postulacionesWebflowRoutes from "./routes/Modulo_TalentoHumano/postulacionesWebflow.routes.js";
 
@@ -250,6 +251,8 @@ app.use("/api/taskrequerimentdev", TaskRequerimentDev);
 app.use("/api/ricekanban", RiceRoutes);
 // SCADA
 app.use("/api/scada/nivelesaveva", Niveltanquesscada);
+//COCLI COMBAS
+app.use("/api/pesajes", pesajesColiCombass);
 //webflow pstulaciones
 app.use( "/api/postulaciones", postulacionesWebflowRoutes);
 
