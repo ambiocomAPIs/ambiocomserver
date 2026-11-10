@@ -71,6 +71,11 @@ const PostulacionLaboralWebFlowSchema = new mongoose.Schema(
       type: String,
       default: "RECIBIDA",
     },
+
+    fechaPrimeraVisualizacion: {
+      type: Date,
+      default: null,
+    },
   },
   {
     timestamps: true,

@@ -11,7 +11,7 @@ import { requireAuth, requireRole } from "../../middlewares/auth.middleware.js";
 
 const router = express.Router();
 
-router.get("/",requireAuth, requireRole("developer","supervisor", "liderlogistica", "gerente" ,"auxiliarlogistica2","auxiliarlogistica1", "comercial"), getTanques);
+router.get("/",requireAuth, requireRole("developer","supervisor", "liderlogistica", "gerencialogistica", "gerente" ,"auxiliarlogistica2","auxiliarlogistica1", "comercial", "analistadecostoseinventarios"), getTanques);
 router.post("/",requireAuth, requireRole("developer","supervisor", "gerente"), createTanque);
 router.put("/:id",requireAuth, requireRole("developer","supervisor", "gerente"), updateTanque);
 router.delete("/:id",requireAuth, requireRole("developer","supervisor", "gerente"), deleteTanque);

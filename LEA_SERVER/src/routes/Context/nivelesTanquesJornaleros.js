@@ -37,7 +37,9 @@ router.get(
     "developer",
     "supervisor",
     "gerente",
-    "comercial"
+    "comercial",
+    "analistadecostoseinventarios",
+    "gerencialogistica"
   ),
   obtenerResumenNivelesTanquesBitacora
 );
@@ -49,7 +51,9 @@ router.get(
     "developer",
     "supervisor",
     "gerente",
-    "comercial"
+    "comercial",
+    "analistadecostoseinventarios",
+    "gerencialogistica"
   ),
   obtenerNiveles
 );
@@ -71,7 +75,7 @@ router.delete(
 router.get(
   "/porfecha/:fecha",
   requireAuth,
-  requireRole("developer", "supervisor", "gerente"),
+  requireRole("developer", "supervisor", "gerente", "analistadecostoseinventarios", "gerencialogistica"),
   obtenerNivelesPorFecha
 );
 

@@ -5,13 +5,14 @@ import {
   recibirPostulacionWebflow,
   listarPostulacionesWebflow,
   actualizarEstadoPostulacionWebflow,
+  marcarPostulacionComoVistaWebflow,
 } from "../../controllers/Modulo_TalentoHumano/postulacionesWebflow.controller.js";
 
 
 const router = express.Router();
 
 
-import { requireAuth, requireRole,} from "../../middlewares/auth.middleware.js";
+import { requireAuth, requireRole, } from "../../middlewares/auth.middleware.js";
 
 router.post(
   "/webflow/webhook",
@@ -31,6 +32,13 @@ router.patch(
   requireAuth,
   requireRole("developer", "gerente", "talentohumano"),
   actualizarEstadoPostulacionWebflow
+);
+
+router.patch(
+  "/postulaciones/:id/vista",
+  requireAuth,
+  requireRole("developer", "gerente", "talentohumano"),
+  marcarPostulacionComoVistaWebflow
 );
 
 

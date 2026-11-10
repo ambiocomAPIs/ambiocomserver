@@ -93,6 +93,7 @@ import Niveltanquesscada from "./routes/SCADA/Niveltanquesscada.routes.js";
 import pesajesColiCombass from "./routes/COCLI_COMBAS/pesajesCombass.routes.js";
 //WEBFLOW POSTULACIONES
 import postulacionesWebflowRoutes from "./routes/Modulo_TalentoHumano/postulacionesWebflow.routes.js";
+import webflowCMSRoutes from "./routes/Modulo_TalentoHumano/WebflowService/webflowCMS.routes.js";
 
 dotenv.config();
 
@@ -255,6 +256,7 @@ app.use("/api/scada/nivelesaveva", Niveltanquesscada);
 app.use("/api/pesajes", pesajesColiCombass);
 //webflow pstulaciones
 app.use( "/api/postulaciones", postulacionesWebflowRoutes);
+app.use("/api/webflow-cms", webflowCMSRoutes);
 
 
 // ======= enpoint que verifica conexcion con el backend e internet (NO BORRAR) =========

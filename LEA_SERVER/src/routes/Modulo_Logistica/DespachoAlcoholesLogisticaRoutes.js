@@ -28,7 +28,7 @@ router.patch(
   requireAuth,
   requireRole(
     "developer",
-    "liderlogistica",
+    "liderlogistica", "gerencialogistica",
     "laboratorio",
     "gerente",
     "supervisor",
@@ -45,14 +45,15 @@ router.get(
   requireAuth,
   requireRole(
     "developer",
-    "liderlogistica",
+    "liderlogistica", "gerencialogistica",
     "laboratorio",
     "gerente",
     "supervisor",
     "auxiliarlogistica1",
     "auxiliarlogistica2",
     "torrecontrollogistica",
-    "comercial"
+    "comercial",
+    "analistadecostoseinventarios"
   ),
   obtenerDespachoAlcoholByRango
 );
@@ -64,7 +65,7 @@ router.post(
   requireRole(
     "developer",
     "usuariobascula",
-    "liderlogistica",
+    "liderlogistica", "gerencialogistica",
     "laboratorio",
     "gerente",
     "supervisor",
@@ -81,14 +82,15 @@ router.get(
   requireAuth,
   requireRole(
     "developer",
-    "liderlogistica",
+    "liderlogistica", "gerencialogistica",
     "laboratorio",
     "gerente",
     "supervisor",
     "auxiliarlogistica1",
     "auxiliarlogistica2",
     "torrecontrollogistica",
-    "comercial"
+    "comercial",
+    "analistadecostoseinventarios"
   ),
   obtenerDespachoAlcohol
 );
@@ -99,7 +101,7 @@ router.get(
   requireAuth,
   requireRole(
     "developer",
-    "liderlogistica",
+    "liderlogistica", "gerencialogistica",
     "laboratorio",
     "gerente",
     "supervisor",
@@ -116,7 +118,7 @@ router.post(
   requireAuth,
   requireRole(
     "developer",
-    "liderlogistica",
+    "liderlogistica", "gerencialogistica",
     "laboratorio",
     "gerente",
     "supervisor",
@@ -139,14 +141,15 @@ router.get(
   requireAuth,
   requireRole(
     "developer",
-    "liderlogistica",
+    "liderlogistica", "gerencialogistica",
     "laboratorio",
     "gerente",
     "supervisor",
     "auxiliarlogistica1",
     "auxiliarlogistica2",
     "torrecontrollogistica",
-    "comercial"
+    "comercial",
+    "analistadecostoseinventarios"
   ),
   obtenerDespachosAlcoholBitacoraPorFecha
 );
@@ -157,13 +160,14 @@ router.get(
   requireAuth,
   requireRole(
     "developer",
-    "liderlogistica",
+    "liderlogistica", "gerencialogistica",
     "laboratorio",
     "gerente",
     "supervisor",
     "auxiliarlogistica1",
     "auxiliarlogistica2",
-    "torrecontrollogistica"
+    "torrecontrollogistica",
+    "analistadecostoseinventarios"
   ),
   obtenerDespachoAlcoholPorId
 );
@@ -174,7 +178,7 @@ router.put(
   requireRole(
     "developer",
     "usuariobascula",
-    "liderlogistica",
+    "liderlogistica", "gerencialogistica",
     "laboratorio",
     "gerente",
     "supervisor",
@@ -190,7 +194,7 @@ router.delete(
   requireAuth,
   requireRole(
     "developer",
-    "liderlogistica",
+    "liderlogistica", "gerencialogistica",
     "laboratorio",
     "gerente",
     "supervisor",

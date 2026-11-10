@@ -837,6 +837,7 @@ export const listarPostulacionesWebflow = async (req, res) => {
 
 const ESTADOS_POSTULACION = [
   "RECIBIDA",
+  "VISTA",
   "EN_REVISION",
   "PRESELECCIONADA",
   "ENTREVISTA",
@@ -887,6 +888,74 @@ export const actualizarEstadoPostulacionWebflow = async (req, res) => {
     return res.status(500).json({
       ok: false,
       message: "No fue posible actualizar el estado.",
+    });
+  }
+};
+
+
+export const marcarPostulacionComoVistaWebflow = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    if (!mongoose.isValidObjectId(id)) {
+      return res.status(400).json({
+        ok: false,
+        message: "ID de postulación inválido.",
+      });
+    }
+
+    const postulacionActualizada =
+      await PostulacionLaboral.findOneAndUpdate(
+        {
+          _id: id,
+          estado: "RECIBIDA",
+        },
+        {
+          $set: {
+            estado: "VISTA",
+            fechaPrimeraVisualizacion: new Date(),
+          },
+        },
+        {
+          new: true,
+          runValidators: true,
+        }
+      ).lean();
+
+    if (postulacionActualizada) {
+      return res.status(200).json({
+        ok: true,
+        actualizada: true,
+        postulacion: postulacionActualizada,
+      });
+    }
+
+    const postulacion = await PostulacionLaboral
+      .findById(id)
+      .lean();
+
+    if (!postulacion) {
+      return res.status(404).json({
+        ok: false,
+        message: "Postulación no encontrada.",
+      });
+    }
+
+    return res.status(200).json({
+      ok: true,
+      actualizada: false,
+      postulacion,
+    });
+
+  } catch (error) {
+    console.error(
+      "Error marcando postulación como vista:",
+      error.message
+    );
+
+    return res.status(500).json({
+      ok: false,
+      message: "No fue posible registrar la visualización.",
     });
   }
 };
