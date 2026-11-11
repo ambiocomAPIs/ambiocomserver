@@ -234,6 +234,24 @@ export const recibirPostulacionWebflow = async (
        2. VALIDAR FIRMA DEL WEBHOOK
     =================================================== */
 
+    console.log("========== WEBFLOW WEBHOOK ENTRANTE ==========");
+
+    console.log({
+      fechaServidor: new Date().toISOString(),
+      metodo: req.method,
+      ruta: req.originalUrl,
+      contentType: req.get("content-type"),
+      firmaPresente: Boolean(
+        req.get("x-webflow-signature")
+      ),
+      timestampPresente: Boolean(
+        req.get("x-webflow-timestamp")
+      ),
+      bodyEsBuffer: Buffer.isBuffer(req.body),
+    });
+
+    console.log("=============================================");
+
     const firmaValida = validarFirmaWebflow(req);
 
     if (!firmaValida) {
@@ -367,11 +385,28 @@ export const recibirPostulacionWebflow = async (
        6. VALIDAR SITIO Y FORMULARIO
     =================================================== */
 
+
     const siteIdEsperado =
       process.env.WEBFLOW_SITE_ID;
 
     const formIdEsperado =
       process.env.WEBFLOW_POSTULACIONES_FORM_ID;
+
+    const formElementIdEsperado =
+      process.env.WEBFLOW_POSTULACIONES_FORM_ELEMENT_ID;
+
+    // IDs adicionales de formularios autorizados
+    const formulariosAdicionales = (
+      process.env.WEBFLOW_POSTULACIONES_FORM_IDS || ""
+    )
+      .split(",")
+      .map(id => id.trim())
+      .filter(Boolean);
+
+    const formulariosPermitidos = new Set([
+      formIdEsperado,
+      ...formulariosAdicionales,
+    ].filter(Boolean));
 
     if (
       !siteIdEsperado ||
@@ -388,19 +423,50 @@ export const recibirPostulacionWebflow = async (
       });
     }
 
-    if (
-      payload.siteId !== siteIdEsperado ||
-      payload.formId !== formIdEsperado
-    ) {
+    // if (
+    //   payload.siteId !== siteIdEsperado ||
+    //   payload.formId !== formIdEsperado
+    // ) {
 
+    //   console.warn(
+    //     "WEBFLOW: Formulario o sitio no autorizado"
+    //   );
+
+    //   return res.status(200).json({
+    //     ok: true,
+    //     ignored: true,
+    //     message: "Sitio o formulario no corresponde",
+    //   });
+    // }
+
+
+    const sitioValido =
+      payload.siteId === siteIdEsperado;
+
+    const formularioPorIdValido =
+      formulariosPermitidos.has(payload.formId);
+
+    const formularioPorElementoValido =
+      Boolean(formElementIdEsperado) &&
+      payload.formElementId === formElementIdEsperado;
+
+    const formularioValido =
+      formularioPorIdValido ||
+      formularioPorElementoValido;
+
+    if (!sitioValido || !formularioValido) {
       console.warn(
-        "WEBFLOW: Formulario o sitio no autorizado"
+        "WEBFLOW: Formulario o sitio no autorizado",
+        {
+          siteId: payload.siteId,
+          formId: payload.formId,
+          formElementId: payload.formElementId,
+        }
       );
 
-      return res.status(200).json({
-        ok: true,
-        ignored: true,
-        message: "Sitio o formulario no corresponde",
+      return res.status(403).json({
+        ok: false,
+        message: "Formulario o sitio no autorizado",
       });
     }
 
@@ -462,6 +528,28 @@ export const recibirPostulacionWebflow = async (
       "Telefono",
       "Field"
     );
+
+    const edad = obtenerCampo(
+      data,
+      "edad",
+      "Edad"
+    );
+
+    const municipioResidencia = obtenerCampo(
+      data,
+      "municipio_residencia",
+      "Municipio de residencia",
+      "Ciudad o municipio de residencia"
+    );
+
+    // Convertir edad de forma segura
+    const edadTexto = String(edad ?? "").trim();
+
+    const edadNumero =
+      /^\d+$/.test(edadTexto) &&
+        Number(edadTexto) <= 120
+        ? Number(edadTexto)
+        : null;
 
     const expectativasComentarios = obtenerCampo(
       data,
@@ -616,6 +704,17 @@ export const recibirPostulacionWebflow = async (
     );
 
     console.log(
+      "Edad recibida:",
+      edadNumero !== null
+    );
+
+    console.log(
+      "Municipio residencia encontrado:",
+      Boolean(municipioResidencia)
+    );
+
+
+    console.log(
       "Comentarios encontrados:",
       Boolean(expectativasComentarios)
     );
@@ -722,6 +821,13 @@ export const recibirPostulacionWebflow = async (
         nombreCompleto: String(nombreCompleto),
         correoPersonal: String(correoPersonal),
         contactoPersonal: String(contactoPersonal),
+
+        edad: edadNumero,
+
+        municipioResidencia: String(
+          municipioResidencia
+        ).trim(),
+
         expectativasComentarios: String(
           expectativasComentarios
         ),

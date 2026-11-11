@@ -2346,3 +2346,10 @@
 [10/11/2026 13:44:42] POST /api/auth/login | status=200 | rol=anonimo | email=anonimo
 [10/11/2026 14:46:35] POST /api/auth/logout | status=200 | rol=anonimo | email=anonimo
 [10/11/2026 14:46:51] POST /api/auth/login | status=200 | rol=anonimo | email=anonimo
+[11/11/2026 12:15:34] POST /api/auth/login | status=200 | rol=anonimo | email=anonimo
+[11/11/2026 12:18:42] POST /api/ricekanban | status=201 | rol=developer | email=desarrolladores.ambiocom@ambiocom.com
+[11/11/2026 14:39:28] POST /api/auth/logout | status=200 | rol=anonimo | email=anonimo
+[11/11/2026 14:39:41] POST /api/auth/login | status=200 | rol=anonimo | email=anonimo
+[11/11/2026 15:29:31] PATCH /api/postulaciones/postulaciones/6af4c9690eaa3b588138335c/vista | status=200 | rol=developer | email=desarrolladores.ambiocom@ambiocom.com
+[11/11/2026 15:47:36] POST /api/auth/logout | status=200 | rol=anonimo | email=anonimo
+[11/11/2026 15:47:54] POST /api/auth/login | status=200 | rol=anonimo | email=anonimo

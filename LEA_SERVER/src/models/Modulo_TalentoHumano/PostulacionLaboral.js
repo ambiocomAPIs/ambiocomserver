@@ -50,12 +50,28 @@ const PostulacionLaboralWebFlowSchema = new mongoose.Schema(
     },
 
 
+
     aspirante: {
       nombreCompleto: String,
       correoPersonal: String,
       contactoPersonal: String,
+
+      edad: {
+        type: Number,
+        min: 0,
+        max: 120,
+        default: null,
+      },
+
+      municipioResidencia: {
+        type: String,
+        trim: true,
+        default: "",
+      },
+
       expectativasComentarios: String,
     },
+
 
     hojaVida: {
       urlWebflow: String,
