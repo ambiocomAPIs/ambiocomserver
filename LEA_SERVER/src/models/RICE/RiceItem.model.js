@@ -23,7 +23,7 @@ const HistoryChangeSchema = new mongoose.Schema(
       default: "",
     },
   },
-  {
+  { 
     _id: false,
   }
 );

@@ -87,6 +87,8 @@ import RiceRoutes from "./routes/RICE/rice.routes.js"
 import tutorialModalList from "./routes/ModalTutorialList/tutorialModalList.routes.js"
 //CONFIGS
 import configuraciones from "./config/config.js";
+//SWAGGER / OpenAPI
+import { setupSwagger } from "./config/swagger.js";
 //SCADA
 import Niveltanquesscada from "./routes/SCADA/Niveltanquesscada.routes.js";
 //COCLI COMBAS
@@ -94,6 +96,8 @@ import pesajesColiCombass from "./routes/COCLI_COMBAS/pesajesCombass.routes.js";
 //WEBFLOW POSTULACIONES
 import postulacionesWebflowRoutes from "./routes/Modulo_TalentoHumano/postulacionesWebflow.routes.js";
 import webflowCMSRoutes from "./routes/Modulo_TalentoHumano/WebflowService/webflowCMS.routes.js";
+// COCLÍ AI - INTELIGENCIA ARTIFICIAL
+import cocliAIRoutes from "./routes/IA/cocliAI.routes.js";
 
 dotenv.config();
 
@@ -257,7 +261,8 @@ app.use("/api/pesajes", pesajesColiCombass);
 //webflow pstulaciones
 app.use( "/api/postulaciones", postulacionesWebflowRoutes);
 app.use("/api/webflow-cms", webflowCMSRoutes);
-
+// COCLÍ AI - DATOS E INTELIGENCIA ARTIFICIAL
+app.use("/api/cocli-ai", cocliAIRoutes);
 
 // ======= enpoint que verifica conexcion con el backend e internet (NO BORRAR) =========
 app.get("/api/health", (req, res) => {
@@ -300,7 +305,7 @@ app.post("/api/gemini/message", async (req, res) => {
 
   try {
     const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`,
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash-lite:generateContent?key=${GEMINI_API_KEY}`,
       {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -374,6 +379,14 @@ app.post("/api/seed-users", async (req, res) => {
     res.status(500).json({ message: "Error" });
   }
 });
+
+// ================= DOCUMENTACION DE LA API (Swagger / OpenAPI) =================
+// Se monta al final, despues de registrar todas las rutas, para que la
+// introspeccion del router detecte todos los endpoints.
+//   UI:   /api-docs
+//   JSON: /api-docs.json
+await setupSwagger(app);
+//===============================================================================
 
 // Iniciar servidor
 app.listen(PORT, () => {
